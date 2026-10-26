@@ -317,30 +317,28 @@
             const horaTermino = document.getElementById('horaTermino').value;
             const dataExtenso = formatarDataExtenso(document.getElementById('dataAssinatura').value);
             const v = atualizarCalculosValores();
-        
-            // VALIDAÇÃO: Bloqueia se a data já estiver ocupada na nuvem
-            try {
-                const querySnapshot = await db.collection("agenda").where("data", "==", dataLocacaoInput).get();
-                if (!querySnapshot.empty) {
-                    alert(`⚠️ Atenção: A data ${dataLocacao} já possui um evento agendado! Escolha outra data.`);
-                    return;
-                }
-            } catch (error) {
-                console.error("Erro ao verificar disponibilidade:", error);
-                alert("⚠️ Erro ao verificar a disponibilidade da data. Verifique sua conexão com a internet.");
-                return; // Impede que o contrato seja gerado se a consulta falhar
-            }
 
-            // Salva APENAS os dados públicos na nuvem (Firebase) em tempo real
+        // VALIDAÇÃO RIGOROSA: Usa a própria data como ID único no Firebase
+            const docRef = db.collection("agenda").doc(dataLocacaoInput);
+    
             try {
-                await db.collection("agenda").add({
+                const docSnap = await docRef.get();
+                if (docSnap.exists) {
+                    alert(`⚠️ Atenção: A data ${dataLocacao} já possui um evento agendado! Escolha outra data.`);
+                    return; // Bloqueia a geração e o agendamento
+                }
+
+            // Salva o agendamento usando a data como ID para garantir exclusividade absoluta
+                await docRef.set({
                     nome: nomeLocatario,
                     data: dataLocacaoInput,
                     horario: horaInicio,
                     criadoEm: firebase.firestore.FieldValue.serverTimestamp()
                 });
             } catch (error) {
-                console.error("Erro ao salvar na agenda:", error);
+                console.error("Erro ao verificar/salvar na agenda:", error);
+                alert("⚠️ Erro ao verificar a disponibilidade da data. Verifique sua conexão.");
+                return;
             }
 
             const { jsPDF } = window.jspdf;
