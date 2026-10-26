@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gerador de Contrato de Locação - Associação Apolo</title>
+    <!-- Tailwind CSS para interface -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jsPDF para geração de PDF 100% nativa e precisa -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            touch-action: manipulation;
+        }
+        input, select {
+            font-size: 16px !important; /* Previne zoom automático em iOS */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
+
+    <!-- Cabeçalho -->
+    <header class="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-40">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-file-signature text-2xl text-amber-400"></i>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold leading-tight">Associação de Moradores</h1>
+                    <p class="text-xs text-blue-200">Conjunto Apolo - São José dos Pinhais</p>
+                </div>
+            </div>
+            <button id="installBtn" class="hidden bg-amber-400 hover:bg-amber-500 text-blue-950 font-bold px-3 py-1.5 rounded-lg text-xs sm:text-sm flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-download"></i> Baixar App
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto p-4 space-y-5">
+
+        <!-- Banner Explicativo -->
+        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
+            <i class="fa-solid fa-circle-check text-blue-600 text-xl mt-0.5"></i>
+            <div>
+                <h2 class="font-bold text-blue-900 text-sm sm:text-base">Gerador Direto de PDF (Sem cortes de linha)</h2>
+                <p class="text-xs sm:text-sm text-blue-800">Preencha os dados abaixo. O PDF será montado de forma nativa e alinhada, mantendo as cláusulas e assinaturas perfeitas em 2 páginas A4.</p>
+            </div>
+        </div>
+
+        <!-- Formulário -->
+        <form id="contractForm" class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5" onsubmit="event.preventDefault();">
+            
+            <!-- Seção 1: Locatário -->
+            <div class="border-b pb-4">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-user text-blue-700"></i> 1. Dados do Locatário(a)
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo *</label>
+                        <input type="text" id="nomeLocatario" required value="Ana Luiza Schnepel Lopes" placeholder="Nome do locatário" 
+                               class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">CPF ou CNPJ *</label>
+                            <input type="text" id="cpfCnpj" required value="103.980.419-54" placeholder="000.000.000-00" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Data da Assinatura *</label>
+                            <input type="date" id="dataAssinatura" required 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Endereço Completo *</label>
+                        <input type="text" id="endereco" required value="Rua Tavares de Lira - 3547" placeholder="Rua, Número, Bairro" 
+                               class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 2: Evento -->
+            <div class="border-b pb-4">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-calendar-day text-blue-700"></i> 2. Detalhes da Locação
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Finalidade / Tipo de Evento *</label>
+                        <input type="text" id="tipoEvento" required value="festa de chá de bebê" placeholder="Ex: festa de aniversário, chá de bebê" 
+                               class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Data do Evento *</label>
+                            <input type="date" id="dataLocacao" required value="2026-10-31" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Início *</label>
+                            <input type="time" id="horaInicio" required value="09:00" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Término *</label>
+                            <input type="time" id="horaTermino" required value="22:00" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 3: Valores -->
+            <div>
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-money-bill-wave text-blue-700"></i> 3. Valores e Pagamento
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Valor Total do Aluguel (R$) *</label>
+                        <input type="number" step="0.01" id="valorTotal" required value="400.00" oninput="atualizarCalculosValores()" 
+                               class="w-full p-3 border border-slate-300 rounded-xl font-bold text-blue-900 text-lg focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                        <div>
+                            <span class="block text-slate-500 font-semibold">Reserva (50%):</span>
+                            <span id="lblSinal" class="font-bold text-emerald-700 text-sm">R$ 200,00</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-500 font-semibold">Saldo (50%):</span>
+                            <span id="lblRestante" class="font-bold text-blue-700 text-sm">R$ 200,00</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-500 font-semibold">Multa (10%):</span>
+                            <span id="lblRetencao" class="font-bold text-amber-700 text-sm">R$ 40,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="pt-2 space-y-2">
+                <button type="button" onclick="gerarPDFNativo()" 
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black py-4 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base">
+                    <i class="fa-solid fa-file-pdf text-xl"></i> GERAR E BAIXAR CONTRATO (PDF)
+                </button>
+                <button type="button" onclick="limparCampos()" 
+                        class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-eraser"></i> Limpar Formulário
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Define data atual padrão no carregamento
+        document.addEventListener('DOMContentLoaded', () => {
+            const hoje = new Date();
+            const yyyy = hoje.getFullYear();
+            const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoje.getDate()).padStart(2, '0');
+            document.getElementById('dataAssinatura').value = `${yyyy}-${mm}-${dd}`;
+            atualizarCalculosValores();
+        });
+
+        function formatarMoeda(val) {
+            return val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function atualizarCalculosValores() {
+            const total = parseFloat(document.getElementById('valorTotal').value) || 0;
+            const sinal = total * 0.50;
+            const restante = total * 0.50;
+            const retencao = total * 0.10;
+
+            document.getElementById('lblSinal').innerText = `R$ ${formatarMoeda(sinal)}`;
+            document.getElementById('lblRestante').innerText = `R$ ${formatarMoeda(restante)}`;
+            document.getElementById('lblRetencao').innerText = `R$ ${formatarMoeda(retencao)}`;
+
+            return { total, sinal, restante, retencao };
+        }
+
+        function formatarDataBR(dataStr) {
+            if (!dataStr) return '__/__/____';
+            const p = dataStr.split('-');
+            return `${p[2]}/${p[1]}/${p[0]}`;
+        }
+
+        function formatarDataExtenso(dataStr) {
+            if (!dataStr) return '____ de _______________ de ________';
+            const p = dataStr.split('-');
+            const d = new Date(p[0], p[1] - 1, p[2]);
+            return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function limparCampos() {
+            if (confirm('Deseja realmente limpar todos os campos do formulário?')) {
+                document.getElementById('nomeLocatario').value = '';
+                document.getElementById('cpfCnpj').value = '';
+                document.getElementById('endereco').value = '';
+                document.getElementById('tipoEvento').value = '';
+                document.getElementById('valorTotal').value = '400.00';
+                atualizarCalculosValores();
+            }
+        }
+
+        // GERADOR NATIVO DE PDF (Sem Canvas / Sem linhas cortadas ao meio)
+        function gerarPDFNativo() {
+            const form = document.getElementById('contractForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // Dados do Formulário
+            const nomeLocatario = document.getElementById('nomeLocatario').value.trim();
+            const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
+            const endereco = document.getElementById('endereco').value.trim();
+            const tipoEvento = document.getElementById('tipoEvento').value.trim();
+            const dataLocacao = formatarDataBR(document.getElementById('dataLocacao').value);
+            const horaInicio = document.getElementById('horaInicio').value;
+            const horaTermino = document.getElementById('horaTermino').value;
+            const dataExtenso = formatarDataExtenso(document.getElementById('dataAssinatura').value);
+            const v = atualizarCalculosValores();
+
+            // Configurações de página A4
+            const marginX = 20;
+            const marginTop = 20;
+            const marginBottom = 20;
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const maxLineWidth = pageWidth - (marginX * 2);
+
+            let currentY = marginTop;
+
+            // Função para verificar se o conteúdo cabe na página atual
+            function checkPageOverflow(neededHeight) {
+                if (currentY + neededHeight > pageHeight - marginBottom) {
+                    doc.addPage();
+                    currentY = marginTop;
+                }
+            }
+
+            // Função para adicionar parágrafo formatado
+            function addParagraph(text, options = {}) {
+                const fontSize = options.fontSize || 10;
+                const fontType = options.fontType || 'normal';
+                const align = options.align || 'justify';
+                const spaceAfter = options.spaceAfter !== undefined ? options.spaceAfter : 4;
+                const isBold = options.isBold || false;
+
+                doc.setFont("times", isBold ? "bold" : fontType);
+                doc.setFontSize(fontSize);
+
+                const lines = doc.splitTextToSize(text, maxLineWidth);
+                const lineHeight = fontSize * 0.45;
+                const totalHeight = (lines.length * lineHeight) + spaceAfter;
+
+                checkPageOverflow(totalHeight);
+
+                if (align === 'center') {
+                    lines.forEach(line => {
+                        doc.text(line, pageWidth / 2, currentY, { align: 'center' });
+                        currentY += lineHeight;
+                    });
+                } else if (align === 'right') {
+                    lines.forEach(line => {
+                        doc.text(line, pageWidth - marginX, currentY, { align: 'right' });
+                        currentY += lineHeight;
+                    });
+                } else {
+                    // Texto Justificado ou Esquerda
+                    doc.text(lines, marginX, currentY, { align: align === 'justify' ? 'justify' : 'left', maxWidth: maxLineWidth });
+                    currentY += lines.length * lineHeight;
+                }
+
+                currentY += spaceAfter;
+            }
+
+            // 1. TÍTULO
+            addParagraph("CONTRATO DE LOCAÇÃO DE SALÃO DE FESTAS E EVENTOS", {
+                fontSize: 12,
+                isBold: true,
+                align: 'center',
+                spaceAfter: 6
+            });
+
+            // 2. PARTES
+            addParagraph(`LOCADORA: ASSOCIAÇÃO DE MORADORES DO CONJUNTO APOLO, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 80.205.073/0001-59, com sede na Rua dos Papagaios, 320 - Aviação, neste ato representada por sua Presidente, Ariete de Fátima da Silveira Carvalho.`, {
+                fontSize: 10,
+                align: 'justify',
+                spaceAfter: 3
+            });
+
+            addParagraph(`LOCATÁRIO(A): ${nomeLocatario}, inscrito(a) no CPF/CNPJ sob o nº ${cpfCnpj}, residente ou sediado na ${endereco}.`, {
+                fontSize: 10,
+                align: 'justify',
+                spaceAfter: 3
+            });
+
+            addParagraph(`As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Locação, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente documento.`, {
+                fontSize: 10,
+                align: 'justify',
+                spaceAfter: 4
+            });
+
+            // 3. CLÁUSULAS
+            const clausulas = [
+                {
+                    titulo: "CLÁUSULA PRIMEIRA – DO OBJETO",
+                    itens: [
+                        "1.1. O objeto deste contrato é a locação temporária do Salão de Festas da Associação, incluindo sua infraestrutura básica (copa, banheiros e salão principal), localizado nas dependências da sede social.",
+                        `1.2. O espaço será utilizado exclusivamente para a realização de 01(um) ${tipoEvento}, sendo vedada qualquer atividade de cunho político, religioso ou comercial que não tenha sido previamente autorizada pela Diretoria.`
+                    ]
+                },
+                {
+                    titulo: "CLÁUSULA SEGUNDA – DO PERÍODO E HORÁRIO",
+                    itens: [
+                        `2.1. A locação terá início às ${horaInicio} horas do dia ${dataLocacao} e término improrrogável às ${horaTermino} horas do dia ${dataLocacao}.`,
+                        "2.2. O período contratado inclui o tempo necessário para montagem e desmontagem da decoração. Caso o Locatário necessite de tempo adicional, deverá haver consulta prévia de disponibilidade e pagamento de taxa extra."
+                    ]
+                },
+                {
+                    titulo: "CLÁUSULA TERCEIRA – DO VALOR E FORMA DE PAGAMENTO",
+                    itens: [
+                        `3.1. Pela locação do espaço, o Locatário pagará à Associação a quantia de R$ ${formatarMoeda(v.total)}.`,
+                        `3.2. O pagamento deverá ser efetuado da seguinte forma: 50% do aluguel na reserva (R$ ${formatarMoeda(v.sinal)}) e 50% do aluguel até 48h antes do evento (R$ ${formatarMoeda(v.restante)}).`
+                    ]
+                },
+                {
+                    titulo: "CLÁUSULA QUARTA – DOS DEVERES E RESPONSABILIDADES DO LOCATÁRIO",
+                    itens: [
+                        "4.1. O Locatário obriga-se a manter o volume do som dentro dos limites de decibéis permitidos pela legislação municipal e pela \"Lei do Silêncio\", cessando qualquer barulho excessivo após às 22h.",
+                        "4.2. É de inteira responsabilidade do Locatário a contratação de segurança, recepção e buffet, bem como o pagamento de taxas de direitos autorais (ECAD), se aplicável.",
+                        "4.3. É proibido o uso de pregos, fitas adesivas de alta aderência, colas ou qualquer material que possa danificar a pintura e o acabamento das paredes e teto."
+                    ]
+                },
+                {
+                    titulo: "CLÁUSULA QUINTA – DA CONSERVAÇÃO E LIMPEZA",
+                    itens: [
+                        "5.1. O Locatário recebe o imóvel em perfeito estado de conservação e limpeza, obrigando-se a devolvê-lo nas mesmas condições.",
+                        "5.2. O lixo produzido deverá ser devidamente ensacado e depositado nos locais indicados pela Administração."
+                    ]
+                },
+                {
+                    titulo: "CLÁUSULA SEXTA – DOS DANOS E AVARIAS",
+                    itens: [
+                        "6.1. Qualquer dano causado à estrutura física, mobiliário ou equipamentos da Associação, por ação do Locatário ou de seus convidados, deverá ser integralmente indenizado no prazo de 48 horas após a vistoria de saída."
+                    ]
+                },
+                {
+                    titulo: "CLÁUSULA SÉTIMA – DA RESCISÃO E CANCELAMENTO",
+                    itens: [
+                        `7.1. Em caso de desistência por parte do Locatário com menos de 05 (cinco) dias de antecedência, haverá retenção de 10% do valor total do contrato (aluguel) (R$ ${formatarMoeda(v.retencao)}).`,
+                        "7.2. O descumprimento de qualquer cláusula deste contrato ensejará a rescisão imediata e a desocupação do espaço, sem direito a reembolso."
+                    ]
+                },
+                {
+                    titulo: "CLÁUSULA OITAVA – DO FORO",
+                    itens: [
+                        "8.1. Para dirimir quaisquer questões oriundas deste contrato, as partes elegem o Foro da Comarca de São José dos Pinhais."
+                    ]
+                }
+            ];
+
+            clausulas.forEach(c => {
+                addParagraph(c.titulo, { fontSize: 10, isBold: true, spaceAfter: 2 });
+                c.itens.forEach(item => {
+                    addParagraph(item, { fontSize: 10, align: 'justify', spaceAfter: 3 });
+                });
+            });
+
+            // DATA E CIDADE
+            addParagraph(`São José dos Pinhais, ${dataExtenso}.`, {
+                fontSize: 10,
+                align: 'right',
+                spaceAfter: 12
+            });
+
+            // ASSINATURAS (Verifica espaço necessário para o bloco completo de assinaturas)
+            checkPageOverflow(40);
+
+            doc.setLineWidth(0.3);
+            
+            // Assinatura 1 - Presidente
+            const sigY1 = currentY + 10;
+            doc.line(40, sigY1, 170, sigY1);
+            doc.setFont("times", "normal");
+            doc.setFontSize(9.5);
+            doc.text("Ariete de Fátima da Silveira Carvalho - Presidente", pageWidth / 2, sigY1 + 4, { align: 'center' });
+            doc.setFont("times", "bold");
+            doc.text("Associação de Moradores do Conjunto Apolo (Locadora)", pageWidth / 2, sigY1 + 8, { align: 'center' });
+
+            // Assinatura 2 - Locatário
+            const sigY2 = sigY1 + 22;
+            doc.line(40, sigY2, 170, sigY2);
+            doc.setFont("times", "normal");
+            doc.text(nomeLocatario, pageWidth / 2, sigY2 + 4, { align: 'center' });
+            doc.setFont("times", "bold");
+            doc.text("Locatário(a)", pageWidth / 2, sigY2 + 8, { align: 'center' });
+
+            // Salvar PDF
+            const filename = `Contrato_Locacao_${nomeLocatario.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            doc.save(filename);
+        }
+
+        // Suporte PWA (Instalar no Celular)
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        });
+    </script>
+</body>
+</html>
