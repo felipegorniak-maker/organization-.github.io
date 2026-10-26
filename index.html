@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- jsPDF para geração de PDF 100% nativa e precisa -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Firebase SDKs (Compat) para Agenda em Tempo Real -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
         body {
@@ -33,135 +36,217 @@
                     <p class="text-xs text-blue-200">Conjunto Apolo - São José dos Pinhais</p>
                 </div>
             </div>
-            <button id="installBtn" class="hidden bg-amber-400 hover:bg-amber-500 text-blue-950 font-bold px-3 py-1.5 rounded-lg text-xs sm:text-sm flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-download"></i> Baixar App
-            </button>
+            <div class="flex items-center gap-2">
+                <!-- Abas de Navegação -->
+                <div class="flex bg-blue-950 p-1 rounded-xl">
+                    <button onclick="switchTab('form')" id="btnTabForm" class="bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Novo Contrato</button>
+                    <button onclick="switchTab('agenda')" id="btnTabAgenda" class="text-blue-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition">Agenda</button>
+                </div>
+                <button id="installBtn" class="hidden bg-amber-400 hover:bg-amber-500 text-blue-950 font-bold px-3 py-1.5 rounded-lg text-xs sm:text-sm flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-download"></i> Baixar App
+                </button>
+            </div>
         </div>
     </header>
 
     <main class="max-w-2xl mx-auto p-4 space-y-5">
 
-        <!-- Banner Explicativo -->
-        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
-            <i class="fa-solid fa-circle-check text-blue-600 text-xl mt-0.5"></i>
-            <div>
-                <h2 class="font-bold text-blue-900 text-sm sm:text-base">Gerador Direto de PDF (Sem cortes de linha)</h2>
-                <p class="text-xs sm:text-sm text-blue-800">Preencha os dados abaixo. O PDF será montado de forma nativa e alinhada, mantendo as cláusulas e assinaturas perfeitas em 2 páginas A4.</p>
+        <!-- ABA 1: FORMULÁRIO -->
+        <div id="tabForm" class="space-y-5">
+            <!-- Banner Explicativo -->
+            <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
+                <i class="fa-solid fa-circle-check text-blue-600 text-xl mt-0.5"></i>
+                <div>
+                    <h2 class="font-bold text-blue-900 text-sm sm:text-base">Gerador Direto de PDF (Sem cortes de linha)</h2>
+                    <p class="text-xs sm:text-sm text-blue-800">Preencha os dados abaixo. O PDF será montado de forma nativa e alinhada, mantendo as cláusulas e assinaturas perfeitas em 2 páginas A4.</p>
+                </div>
+            </div>
+
+            <!-- Formulário -->
+            <form id="contractForm" class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5" onsubmit="event.preventDefault();">
+                
+                <!-- Seção 1: Locatário -->
+                <div class="border-b pb-4">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-user text-blue-700"></i> 1. Dados do Locatário(a)
+                    </h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo *</label>
+                            <input type="text" id="nomeLocatario" required placeholder="Nome do locatário" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">CPF ou CNPJ *</label>
+                                <input type="text" id="cpfCnpj" required placeholder="000.000.000-00" 
+                                       class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Data da Assinatura *</label>
+                                <input type="date" id="dataAssinatura" required 
+                                       class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Endereço Completo *</label>
+                            <input type="text" id="endereco" required placeholder="Rua, Número, Bairro" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Evento -->
+                <div class="border-b pb-4">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-calendar-day text-blue-700"></i> 2. Detalhes da Locação
+                    </h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Finalidade / Tipo de Evento *</label>
+                            <input type="text" id="tipoEvento" required placeholder="Ex: festa de aniversário, chá de bebê" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Data do Evento *</label>
+                                <input type="date" id="dataLocacao" required value="2026-10-31" 
+                                       class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Início *</label>
+                                <input type="time" id="horaInicio" required placeholder="09:00" 
+                                       class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Término *</label>
+                                <input type="time" id="horaTermino" required placeholder="22:00" 
+                                       class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Valores -->
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-money-bill-wave text-blue-700"></i> 3. Valores e Pagamento
+                    </h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Valor Total do Aluguel (R$) *</label>
+                            <input type="number" step="0.01" id="valorTotal" required placeholder="400.00" oninput="atualizarCalculosValores()" 
+                                   class="w-full p-3 border border-slate-300 rounded-xl font-bold text-blue-900 text-lg focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                            <div>
+                                <span class="block text-slate-500 font-semibold">Reserva (50%):</span>
+                                <span id="lblSinal" class="font-bold text-emerald-700 text-sm">R$ 200,00</span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-500 font-semibold">Saldo (50%):</span>
+                                <span id="lblRestante" class="font-bold text-blue-700 text-sm">R$ 200,00</span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-500 font-semibold">Multa (10%):</span>
+                                <span id="lblRetencao" class="font-bold text-amber-700 text-sm">R$ 40,00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações -->
+                <div class="pt-2 space-y-2">
+                    <button type="button" onclick="gerarPDFNativo()" 
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black py-4 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base">
+                        <i class="fa-solid fa-file-pdf text-xl"></i> GERAR E BAIXAR CONTRATO (PDF)
+                    </button>
+                    <button type="button" onclick="limparCampos()" 
+                            class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-eraser"></i> Limpar Formulário
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ABA 2: AGENDA EM TEMPO REAL -->
+        <div id="tabAgenda" class="hidden space-y-4 bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b pb-3">
+                <i class="fa-solid fa-calendar-days text-blue-700"></i> Agenda Compartilhada (Tempo Real)
+            </h2>
+            <p class="text-xs text-slate-500">Compromissos agendados por toda a diretoria (somente nome, data e horário para total privacidade).</p>
+            
+            <div id="agendaList" class="space-y-3 pt-2">
+                <p class="text-slate-400 text-sm text-center py-4">Carregando agendamentos...</p>
             </div>
         </div>
 
-        <!-- Formulário -->
-        <form id="contractForm" class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5" onsubmit="event.preventDefault();">
-            
-            <!-- Seção 1: Locatário -->
-            <div class="border-b pb-4">
-                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-user text-blue-700"></i> 1. Dados do Locatário(a)
-                </h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo *</label>
-                        <input type="text" id="nomeLocatario" required placeholder="Nome do locatário" 
-                               class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">CPF ou CNPJ *</label>
-                            <input type="text" id="cpfCnpj" required placeholder="000.000.000-00" 
-                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Data da Assinatura *</label>
-                            <input type="date" id="dataAssinatura" required 
-                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Endereço Completo *</label>
-                        <input type="text" id="endereco" required placeholder="Rua, Número, Bairro" 
-                               class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seção 2: Evento -->
-            <div class="border-b pb-4">
-                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-calendar-day text-blue-700"></i> 2. Detalhes da Locação
-                </h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Finalidade / Tipo de Evento *</label>
-                        <input type="text" id="tipoEvento" required placeholder="Ex: festa de aniversário, chá de bebê" 
-                               class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Data do Evento *</label>
-                            <input type="date" id="dataLocacao" required value="2026-10-31" 
-                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Início *</label>
-                            <input type="time" id="horaInicio" required placeholder="09:00" 
-                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Término *</label>
-                            <input type="time" id="horaTermino" required placeholder="22:00" 
-                                   class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seção 3: Valores -->
-            <div>
-                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-money-bill-wave text-blue-700"></i> 3. Valores e Pagamento
-                </h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Valor Total do Aluguel (R$) *</label>
-                        <input type="number" step="0.01" id="valorTotal" required placeholder="400.00" oninput="atualizarCalculosValores()" 
-                               class="w-full p-3 border border-slate-300 rounded-xl font-bold text-blue-900 text-lg focus:ring-2 focus:ring-blue-600 focus:outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
-                        <div>
-                            <span class="block text-slate-500 font-semibold">Reserva (50%):</span>
-                            <span id="lblSinal" class="font-bold text-emerald-700 text-sm">R$ 200,00</span>
-                        </div>
-                        <div>
-                            <span class="block text-slate-500 font-semibold">Saldo (50%):</span>
-                            <span id="lblRestante" class="font-bold text-blue-700 text-sm">R$ 200,00</span>
-                        </div>
-                        <div>
-                            <span class="block text-slate-500 font-semibold">Multa (10%):</span>
-                            <span id="lblRetencao" class="font-bold text-amber-700 text-sm">R$ 40,00</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ações -->
-            <div class="pt-2 space-y-2">
-                <button type="button" onclick="gerarPDFNativo()" 
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black py-4 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base">
-                    <i class="fa-solid fa-file-pdf text-xl"></i> GERAR E BAIXAR CONTRATO (PDF)
-                </button>
-                <button type="button" onclick="limparCampos()" 
-                        class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-eraser"></i> Limpar Formulário
-                </button>
-            </div>
-        </form>
     </main>
 
     <script>
+        // CONFIGURAÇÃO DO FIREBASE (Cole suas chaves do console do Firebase aqui)
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Alternar entre Abas
+        function switchTab(tab) {
+            if (tab === 'form') {
+                document.getElementById('tabForm').classList.remove('hidden');
+                document.getElementById('tabAgenda').classList.add('hidden');
+                document.getElementById('btnTabForm').className = "bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                document.getElementById('btnTabAgenda').className = "text-blue-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+            } else {
+                document.getElementById('tabForm').classList.add('hidden');
+                document.getElementById('tabAgenda').classList.remove('hidden');
+                document.getElementById('btnTabAgenda').className = "bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+                document.getElementById('btnTabForm').className = "text-blue-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition";
+            }
+        }
+
+        // Escutar a agenda em tempo real
+        db.collection("agenda").orderBy("data", "asc").onSnapshot((snapshot) => {
+            const listContainer = document.getElementById('agendaList');
+            if (!listContainer) return;
+            listContainer.innerHTML = "";
+
+            if (snapshot.empty) {
+                listContainer.innerHTML = `<p class="text-slate-400 text-sm text-center py-4">Nenhum agendamento registrado até o momento.</p>`;
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const item = doc.data();
+                const dataFormatada = item.data ? formatarDataBR(item.data) : '';
+                
+                const card = document.createElement('div');
+                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center shadow-sm";
+                card.innerHTML = `
+                    <div>
+                        <strong class="text-slate-900 text-sm sm:text-base block">${item.nome}</strong>
+                        <div class="text-xs text-slate-500 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> ${dataFormatada} às ${item.horario || '--:--'}</div>
+                    </div>
+                    <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full">Confirmado</span>
+                `;
+                listContainer.appendChild(card);
+            });
+        }, (error) => {
+            console.error("Erro ao carregar agenda:", error);
+        });
+
         // Define data atual padrão no carregamento
         document.addEventListener('DOMContentLoaded', () => {
             const hoje = new Date();
@@ -213,12 +298,36 @@
             }
         }
 
-        // GERADOR NATIVO DE PDF (Sem Canvas / Sem linhas cortadas ao meio)
-        function gerarPDFNativo() {
+        // GERADOR NATIVO DE PDF (Sem Canvas / Sem linhas cortadas ao meio) + SALVAMENTO NA AGENDA
+        async function gerarPDFNativo() {
             const form = document.getElementById('contractForm');
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
+            }
+
+            // Dados do Formulário
+            const nomeLocatario = document.getElementById('nomeLocatario').value.trim();
+            const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
+            const endereco = document.getElementById('endereco').value.trim();
+            const tipoEvento = document.getElementById('tipoEvento').value.trim();
+            const dataLocacaoInput = document.getElementById('dataLocacao').value;
+            const dataLocacao = formatarDataBR(dataLocacaoInput);
+            const horaInicio = document.getElementById('horaInicio').value;
+            const horaTermino = document.getElementById('horaTermino').value;
+            const dataExtenso = formatarDataExtenso(document.getElementById('dataAssinatura').value);
+            const v = atualizarCalculosValores();
+
+            // Salva APENAS os dados públicos na nuvem (Firebase) em tempo real
+            try {
+                await db.collection("agenda").add({
+                    nome: nomeLocatario,
+                    data: dataLocacaoInput,
+                    horario: horaInicio,
+                    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Erro ao salvar na agenda:", error);
             }
 
             const { jsPDF } = window.jspdf;
@@ -227,17 +336,6 @@
                 unit: 'mm',
                 format: 'a4'
             });
-
-            // Dados do Formulário
-            const nomeLocatario = document.getElementById('nomeLocatario').value.trim();
-            const cpfCnpj = document.getElementById('cpfCnpj').value.trim();
-            const endereco = document.getElementById('endereco').value.trim();
-            const tipoEvento = document.getElementById('tipoEvento').value.trim();
-            const dataLocacao = formatarDataBR(document.getElementById('dataLocacao').value);
-            const horaInicio = document.getElementById('horaInicio').value;
-            const horaTermino = document.getElementById('horaTermino').value;
-            const dataExtenso = formatarDataExtenso(document.getElementById('dataAssinatura').value);
-            const v = atualizarCalculosValores();
 
             // Configurações de página A4
             const marginX = 20;
