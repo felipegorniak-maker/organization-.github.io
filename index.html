@@ -327,6 +327,8 @@
                 }
             } catch (error) {
                 console.error("Erro ao verificar disponibilidade:", error);
+                alert("⚠️ Erro ao verificar a disponibilidade da data. Verifique sua conexão com a internet.");
+                return; // Impede que o contrato seja gerado se a consulta falhar
             }
 
             // Salva APENAS os dados públicos na nuvem (Firebase) em tempo real
