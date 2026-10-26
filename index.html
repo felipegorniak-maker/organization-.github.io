@@ -317,6 +317,17 @@
             const horaTermino = document.getElementById('horaTermino').value;
             const dataExtenso = formatarDataExtenso(document.getElementById('dataAssinatura').value);
             const v = atualizarCalculosValores();
+        
+            // VALIDAÇÃO: Bloqueia se a data já estiver ocupada na nuvem
+            try {
+                const querySnapshot = await db.collection("agenda").where("data", "==", dataLocacaoInput).get();
+                if (!querySnapshot.empty) {
+                    alert(`⚠️ Atenção: A data ${dataLocacao} já possui um evento agendado! Escolha outra data.`);
+                    return;
+                }
+            } catch (error) {
+                console.error("Erro ao verificar disponibilidade:", error);
+            }
 
             // Salva APENAS os dados públicos na nuvem (Firebase) em tempo real
             try {
