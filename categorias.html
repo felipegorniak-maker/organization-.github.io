@@ -133,20 +133,17 @@
                     const cat = docSnap.data();
                     const id = docSnap.id;
                     const isReceita = cat.tipo === 'RECEITA';
+                    const colunaAcoes = devePermitirEscrita() ? 
+                        `<button onclick="excluirCategoria('${id}')" title="Excluir Categoria" class="text-slate-400 hover:text-rose-600 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>` : 
+                        `<span class="text-slate-300">-</span>`;
 
                     html += `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="p-3 font-semibold text-slate-700">${cat.nome}</td>
                             <td class="p-3">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReceita ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
-                                    ${cat.tipo}
-                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReceita ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${cat.tipo}</span>
                             </td>
-                            <td class="p-3 text-center">
-                                <button onclick="excluirCategoria('${id}')" title="Excluir Categoria" class="text-slate-400 hover:text-rose-600 p-1 transition">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </td>
+                            <td class="p-3 text-center">${colunaAcoes}</td>
                         </tr>
                     `;
                 });
