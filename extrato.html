@@ -236,6 +236,11 @@
                         botoesAnexos = `<span class="text-slate-300">-</span>`;
                     }
 
+                    // Define se exibe a lixeira ou um traço com base na permissão do perfil
+                    const colunaAcoes = devePermitirEscrita() ? 
+                        `<button onclick="excluirLancamento('${idDoc}')" title="Excluir Lançamento" class="text-slate-400 hover:text-rose-600 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>` : 
+                        `<span class="text-slate-300">-</span>`;
+
                     htmlTabela += `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="p-3 font-medium text-slate-700">${dataFormatada}</td>
@@ -252,9 +257,7 @@
                             </td>
                             <td class="p-3 text-center">${botoesAnexos}</td>
                             <td class="p-3 text-center">
-                                <button onclick="excluirLancamento('${idDoc}')" title="Excluir Lançamento" class="text-slate-400 hover:text-rose-600 p-1 transition">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
+                                ${colunaAcoes}
                             </td>
                         </tr>
                     `;
