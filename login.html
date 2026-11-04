@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - Associação Apolo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-lg border border-slate-200 p-8">
+        <div class="text-center mb-6">
+            <div class="inline-flex bg-indigo-50 text-indigo-900 p-4 rounded-full mb-3 shadow-inner">
+                <i class="fa-solid fa-lock text-2xl"></i>
+            </div>
+            <h1 class="text-xl font-bold text-slate-900">Associação Apolo</h1>
+            <p class="text-xs text-slate-500 mt-1">Entrar no painel administrativo</p>
+        </div>
+
+        <form id="formLogin" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">E-mail</label>
+                <input type="email" id="emailLogin" required placeholder="seu.email@associacao.com" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Palavra-passe</label>
+                <input type="password" id="senhaLogin" required placeholder="••••••••" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-none">
+            </div>
+
+            <button type="submit" id="btnEntrar" class="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-3.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                <span>Entrar no Sistema</span>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            // Insira aqui as suas credenciais do Firebase
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        document.getElementById('formLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnEntrar');
+            const email = document.getElementById('emailLogin').value;
+            const senha = document.getElementById('senhaLogin').value;
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> A entrar...`;
+
+            try {
+                // Faz o login no Firebase Authentication
+                const userCredential = await auth.signInWithEmailAndPassword(email, senha);
+                const uid = userCredential.user.uid;
+
+                // Busca o perfil do utilizador na coleção "usuarios" para saber se é admin ou consulta
+                const docUser = await db.collection("usuarios").doc(uid).get();
+                
+                if (docUser.exists) {
+                    const dadosUser = docUser.data();
+                    localStorage.setItem('perfilApolo', dadosUser.perfil); // Ex: 'admin' ou 'consulta'
+                    localStorage.setItem('nomeApolo', dadosUser.nome);
+                } else {
+                    // Se não estiver na tabela, assume consulta por segurança
+                    localStorage.setItem('perfilApolo', 'consulta');
+                }
+
+                window.location.href = "finanças.html"; // Redireciona para o painel principal
+            } catch (error) {
+                console.error("Erro no login:", error);
+                alert("⚠️ E-mail ou palavra-passe incorretos.");
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Entrar no Sistema`;
+            }
+        });
+    </script>
+</body>
+</html>
