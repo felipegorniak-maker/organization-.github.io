@@ -40,46 +40,60 @@
         
         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Opções do Salão</h2>
 
-        <!-- Botão Contrato / Novo Agendamento -->
+        <!-- Botão Contrato -->
         <a href="contrato.html" class="bg-white hover:bg-amber-50/50 p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-300 flex items-center justify-between transition group">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg group-hover:scale-110 transition">
                     <i class="fa-solid fa-file-signature"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm">Gerador de Contrato</h3>
-                    <p class="text-xs text-slate-400">Criar locação e agendar data em tempo real</p>
+                    <h3 class="font-bold text-slate-800 text-sm">Gerar Contrato</h3>
+                    <p class="text-xs text-slate-400">Gerar contrato de locação e bloquear data</p>
                 </div>
             </div>
             <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-amber-500 transition"></i>
         </a>
 
-        <!-- Botão Agenda (Abre direto a aba de agenda no contrato) -->
-        <a href="contrato.html#agenda" onclick="localStorage.setItem('abrirAgenda', 'true')" class="bg-white hover:bg-blue-50/50 p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-300 flex items-center justify-between transition group">
+        <!-- Botão Agenda (Abre direto a aba de agenda no contrato.html) -->
+        <a href="contrato.html" onclick="localStorage.setItem('abrirAgenda', 'true')" class="bg-white hover:bg-blue-50/50 p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-300 flex items-center justify-between transition group">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg group-hover:scale-110 transition">
                     <i class="fa-solid fa-calendar-days"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm">Agenda de Locações</h3>
-                    <p class="text-xs text-slate-400">Consultar datas ocupadas em tempo real</p>
+                    <h3 class="font-bold text-slate-800 text-sm">Agenda</h3>
+                    <p class="text-xs text-slate-400">Visualizar locações agendadas em tempo real</p>
                 </div>
             </div>
             <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-blue-600 transition"></i>
         </a>
 
-        <!-- Botão Relação de Bens (Exemplo / Futuro) -->
-        <a href="#" onclick="alert('Módulo de Relação de Bens do Salão em breve!'); return false;" class="bg-white hover:bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between transition group">
+        <!-- Botão Relação de Bens -->
+        <a href="#" onclick="alert('Módulo de Relação de Bens em desenvolvimento.'); return false;" class="bg-white hover:bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between transition group">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-lg group-hover:scale-110 transition">
-                    <i class="fa-solid fa-boxes-stacked"></i>
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                    <i class="fa-solid fa-clipboard-list"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm">Relação de Bens do Salão</h3>
-                    <p class="text-xs text-slate-400">Inventário de mesas, cadeiras e equipamentos</p>
+                    <h3 class="font-bold text-slate-800 text-sm">Relação de Bens</h3>
+                    <p class="text-xs text-slate-400">Inventário de móveis, louças e equipamentos</p>
                 </div>
             </div>
-            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-slate-600 transition"></i>
+            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-emerald-600 transition"></i>
+        </a>
+
+        <!-- Botão Voltar -->
+        <a href="index.html" class="bg-white hover:bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between transition group">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-lg group-hover:scale-110 transition">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm">Voltar</h3>
+                    <p class="text-xs text-slate-400">Retornar ao painel administrativo principal</p>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-slate-700 transition"></i>
         </a>
 
     </main>
