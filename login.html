@@ -78,11 +78,11 @@
                 
                 if (docUser.exists) {
                     const dadosUser = docUser.data();
-                    localStorage.setItem('perfilApolo', dadosUser.perfil); 
-                    localStorage.setItem('nomeApolo', dadosUser.nome);
+                    sessionStorage.setItem('perfilApolo', dadosUser.perfil); 
+                    sessionStorage.setItem('nomeApolo', dadosUser.nome);
                 } else {
-                    localStorage.setItem('perfilApolo', 'SOCIO');
-                    localStorage.setItem('nomeApolo', 'Membro');
+                    sessionStorage.setItem('perfilApolo', 'SOCIO');
+                    sessionStorage.setItem('nomeApolo', 'Membro');
                 }
 
                 window.location.href = "index.html"; 
