@@ -16,18 +16,43 @@
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800">
 
-    <!-- Cabeçalho do Painel -->
+<!-- Cabeçalho do Painel -->
     <header class="bg-indigo-900 text-white shadow-md py-6 px-8">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold tracking-wide">Associação Apolo</h1>
                 <p class="text-indigo-200 text-sm mt-1">Painel de Gestão e Controle Administrativo</p>
             </div>
-            <div class="mt-4 sm:mt-0 bg-indigo-800 px-4 py-2 rounded-lg text-xs font-medium text-indigo-100 border border-indigo-700">
-                📅 Sistema Integrado em Tempo Real
+            
+            <!-- Área do Indicador e Botão Sair -->
+            <div class="mt-4 sm:mt-0 flex items-center gap-3">
+                <div class="bg-indigo-800 px-4 py-2 rounded-lg text-xs font-medium text-indigo-100 border border-indigo-700">
+                    📅 Sistema Integrado em Tempo Real
+                </div>
+                
+                <!-- Botão de Sair com limpeza de sessionStorage -->
+                <button onclick="fazerLogout()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </button>
             </div>
         </div>
     </header>
+
+    <!-- Script de Logout -->
+    <script>
+        function fazerLogout() {
+            // Limpa os dados da sessão atual
+            sessionStorage.clear(); 
+            
+            // Encerra a sessão no Firebase e redireciona para o login
+            firebase.auth().signOut().then(() => {
+                window.location.href = "login.html";
+            }).catch((error) => {
+                console.error("Erro ao terminar sessão:", error);
+                window.location.href = "login.html";
+            });
+        }
+    </script>
 
     <!-- Conteúdo Principal / Grade de Botões -->
     <main class="max-w-6xl mx-auto px-6 py-10 flex-grow w-full">
