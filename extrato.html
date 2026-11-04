@@ -152,8 +152,8 @@
         const db = firebase.firestore();
 
         // Função para abrir o anexo num Modal bonito
-        window.abrirAnexo = function(base64Data, nomeOriginal) {
-            if (!base64Data) {
+        window.abrirAnexo = function(urlArquivo, nomeOriginal) {
+            if (!urlArquivo) {
                 alert("Nenhum ficheiro anexado.");
                 return;
             }
@@ -164,16 +164,15 @@
             const btnBaixar = document.getElementById('btnBaixarAnexo');
 
             titulo.innerText = `Anexo: ${nomeOriginal || 'Documento'}`;
-            btnBaixar.href = base64Data;
+            btnBaixar.href = urlArquivo;
             btnBaixar.download = nomeOriginal || 'comprovante';
+            btnBaixar.target = "_blank";
 
-            // Verifica se é PDF ou imagem
-            if (base64Data.includes('application/pdf')) {
-                container.innerHTML = `<iframe src="${base64Data}" class="w-full h-[65vh] rounded-lg border bg-white"></iframe>`;
-            } else if (base64Data.includes('image/')) {
-                container.innerHTML = `<img src="${base64Data}" class="max-w-full max-h-[65vh] object-contain rounded-lg shadow" />`;
+            // Como é um link do Storage, o navegador exibe perfeitamente no iframe ou imagem
+            if (urlArquivo.toLowerCase().includes('.pdf')) {
+                container.innerHTML = `<iframe src="${urlArquivo}" class="w-full h-[65vh] rounded-lg border bg-white"></iframe>`;
             } else {
-                container.innerHTML = `<p class="text-xs text-slate-600">Este formato não suporta pré-visualização direta. Utilize o botão abaixo para descarregar.</p>`;
+                container.innerHTML = `<img src="${urlArquivo}" class="max-w-full max-h-[65vh] object-contain rounded-lg shadow" />`;
             }
 
             modal.classList.remove('hidden');
