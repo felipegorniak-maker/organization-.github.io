@@ -56,26 +56,25 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                 <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-amber-600"></i> Datas Reservadas
+                    <i class="fa-solid fa-list-check text-amber-600"></i> Compromissos Agendados
                 </h3>
-                <span id="contadorAgenda" class="text-xs text-slate-400">0 reservas encontradas</span>
+                <span id="contadorAgenda" class="text-xs text-slate-400">0 compromissos encontrados</span>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-100/70 text-slate-600 text-[11px] uppercase tracking-wider border-b border-slate-200">
-                            <th class="p-3">Data do Evento</th>
-                            <th class="p-3">Locatário / Responsável</th>
-                            <th class="p-3">Telefone</th>
-                            <th class="p-3">Valor (R$)</th>
+                            <th class="p-3">Data</th>
+                            <th class="p-3">Horário</th>
+                            <th class="p-3">Nome / Responsável</th>
                             <th class="p-3 text-center">Status</th>
                             <th class="p-3 text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaAgendaBody" class="divide-y divide-slate-100 text-xs">
                         <tr>
-                            <td colspan="6" class="p-6 text-center text-slate-400">A carregar agendamentos do Firebase...</td>
+                            <td colspan="5" class="p-6 text-center text-slate-400">A carregar agendamentos do Firebase...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -96,7 +95,7 @@
         const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
         document.getElementById('filtroMesAgenda').value = `${anoAtual}-${mesAtual}`;
 
-        // Configuração do Firebase (Insira as suas chaves oficiais aqui)
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDkJAyKwwpI2-0JuupYqDbRge0aBvKP8EI",
             authDomain: "contratos-apolo.firebaseapp.com",
@@ -114,13 +113,12 @@
 
         async function carregarAgenda() {
             const tbody = document.getElementById('tabelaAgendaBody');
-            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> A atualizar agenda...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> A atualizar agenda...</td></tr>`;
 
             const filtroMesVal = document.getElementById('filtroMesAgenda').value; // Formato "YYYY-MM"
 
             try {
-                // Consulta na coleção 'agenda' do Firestore
-                const snapshot = await db.collection("agenda").orderBy('dataEvento', 'asc').get();
+                const snapshot = await db.collection("agenda").get();
                 
                 let htmlTabela = '';
                 let contador = 0;
@@ -129,27 +127,33 @@
                     const item = docSnap.data();
                     const idDoc = docSnap.id;
 
-                    // Filtra pelo mês selecionado, se houver data válida
-                    if (filtroMesVal && item.dataEvento) {
-                        const mesItem = item.dataEvento.substring(0, 7);
+                    const dataStr = item.data || item.dataEvento || '';
+                    const horarioStr = item.horario || item.hora || '09:00';
+                    const nomeLocatario = item.nome || item.nomeLocatario || item.locatario || 'Não informado';
+
+                    if (filtroMesVal && dataStr) {
+                        const mesItem = dataStr.substring(0, 7);
                         if (mesItem !== filtroMesVal) return;
                     }
 
                     contador++;
-                    const valorNum = Number(item.valorLocacao || item.valor) || 0;
-                    
-                    const partesData = item.dataEvento ? item.dataEvento.split('-') : ['', '', ''];
-                    const dataFormatada = partesData.length === 3 ? `${partesData[2]}/${partesData[1]}/${partesData[0]}` : (item.dataEvento || '-');
+
+                    let dataFormatada = dataStr;
+                    if (dataStr && dataStr.includes('-')) {
+                        const partes = dataStr.split('-');
+                        if (partes.length === 3) {
+                            dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                        }
+                    }
 
                     htmlTabela += `
                         <tr class="hover:bg-slate-50 transition">
-                            <td class="p-3 font-bold text-slate-700">${dataFormatada}</td>
-                            <td class="p-3 font-medium text-slate-800">${item.nomeLocatario || item.locatario || 'Não informado'}</td>
-                            <td class="p-3 text-slate-600">${item.telefone || '-'}</td>
-                            <td class="p-3 font-bold text-emerald-600">R$ ${valorNum.toFixed(2).replace('.', ',')}</td>
+                            <td class="p-3 font-bold text-slate-700">${dataFormatada || 'Data não definida'}</td>
+                            <td class="p-3 text-slate-600 font-semibold">${horarioStr}</td>
+                            <td class="p-3 font-medium text-slate-800">${nomeLocatario}</td>
                             <td class="p-3 text-center">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                                    Reservado
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                    Confirmado
                                 </span>
                             </td>
                             <td class="p-3 text-center">
@@ -162,16 +166,16 @@
                 });
 
                 if (contador === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Nenhuma locação agendada para o mês selecionado.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Nenhum compromisso encontrado para o mês selecionado.</td></tr>`;
                 } else {
                     tbody.innerHTML = htmlTabela;
                 }
 
-                document.getElementById('contadorAgenda').innerText = `${contador} reservas encontradas`;
+                document.getElementById('contadorAgenda').innerText = `${contador} compromissos encontrados`;
 
             } catch (error) {
                 console.error("Erro ao carregar agenda:", error);
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-500">Erro ao carregar dados do Firebase.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-500">Erro ao carregar dados do Firebase.</td></tr>`;
             }
         }
 
