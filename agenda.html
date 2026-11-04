@@ -146,8 +146,12 @@
                             dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
                         }
                     }
-
-                    htmlTabela += `
+                    // Define se exibe a lixeira ou um traço com base na permissão do perfil
+                    const colunaAcoes = devePermitirEscrita() ? 
+                        `<button onclick="excluirReserva('${idDoc}')" title="Cancelar / Excluir Reserva" class="text-slate-400 hover:text-rose-600 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>` : 
+                        `<span class="text-slate-300">-</span>`;
+                    
+                     htmlTabela += `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="p-3 font-bold text-slate-700">${dataFormatada || 'Data não definida'}</td>
                             <td class="p-3 text-slate-600 font-semibold">${horarioStr}</td>
@@ -158,9 +162,7 @@
                                 </span>
                             </td>
                             <td class="p-3 text-center">
-                                <button onclick="excluirReserva('${idDoc}')" title="Cancelar / Excluir Reserva" class="text-slate-400 hover:text-rose-600 p-1 transition">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
+                                ${colunaAcoes}
                             </td>
                         </tr>
                     `;
