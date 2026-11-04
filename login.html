@@ -51,7 +51,8 @@
             messagingSenderId: "259554157159",
             appId: "1:259554157159:web:7b37146ae4bc1090b22ac2",
             measurementId: "G-YXMMKSGY7B"
-        
+        }; // <-- Aqui estava a faltar fechar a chaveta e o ponto e vírgula!
+
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -72,21 +73,19 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, senha);
                 const uid = userCredential.user.uid;
 
-                // Busca o perfil do utilizador na coleção "usuarios" para saber se é admin ou consulta
+                // Busca o perfil do utilizador na coleção "usuarios"
                 const docUser = await db.collection("usuarios").doc(uid).get();
                 
                 if (docUser.exists) {
                     const dadosUser = docUser.data();
-                    // Guarda exatamente o perfil registado no Firestore (ADMIN, TESOUREIRO, PRESIDENTE ou SOCIO)
                     localStorage.setItem('perfilApolo', dadosUser.perfil); 
                     localStorage.setItem('nomeApolo', dadosUser.nome);
                 } else {
-                    // Se o utilizador autenticou mas não tem documento na tabela "usuarios", assume SÓCIO por segurança
                     localStorage.setItem('perfilApolo', 'SOCIO');
                     localStorage.setItem('nomeApolo', 'Membro');
                 }
 
-                window.location.href = "index.html"; // Redireciona para o painel principal que já existe
+                window.location.href = "index.html"; 
             } catch (error) {
                 console.error("Erro no login:", error);
                 alert("⚠️ E-mail ou palavra-passe incorretos.");
