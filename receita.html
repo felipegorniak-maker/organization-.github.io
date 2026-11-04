@@ -11,6 +11,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800 pb-12">
 
@@ -156,58 +157,59 @@
             }
         }
 
-        const converterParaBase64 = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        };
+        // Função para enviar o arquivo para o Firebase Storage
+        async function uploadParaStorage(file) {
+            if (!file) return null;
+            const nomeUnico = Date.now() + '_' + file.name;
+            const storageRef = firebase.storage().ref().child('comprovantes/' + nomeUnico);
+            const snapshot = await storageRef.put(file);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+            return downloadURL;
+        }
 
         document.getElementById('formReceita').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Salvando...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando foto e salvando...`;
 
             try {
-                let arquivoBase64 = null;
+                let arquivoUrl = null;
                 let nomeArquivo = null;
                 const inputFile = document.getElementById('arquivoComprovante');
-                if (inputFile.files.length > 0) {
-                    const file = inputFile.files[0];
-                    nomeArquivo = file.name;
-                    arquivoBase64 = await converterParaBase64(file);
-                }
-
-                const dados = {
-                    data: document.getElementById('dataReceita').value,
-                    categoria: document.getElementById('categoriaReceita').value,
-                    descricao: document.getElementById('descricaoReceita').value,
-                    valor: parseFloat(document.getElementById('valorReceita').value),
-                    formaPagamento: document.getElementById('formaPagamento').value,
-                    observacao: document.getElementById('obsReceita').value,
-                    comprovanteNome: nomeArquivo,
-                    comprovanteArquivo: arquivoBase64,
-                    tipo: 'RECEITA',
-                    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                await db.collection("financeiro_movimentacoes").add(dados);
-                alert("✅ Receita registrada com sucesso!");
-                document.getElementById('formReceita').reset();
-                document.getElementById('dataReceita').value = new Date().toISOString().split('T')[0];
-                carregarCategoriasReceita();
-            } catch (error) {
-                console.error("Erro ao salvar receita:", error);
-                alert("⚠️ Erro ao registrar receita.");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar Receita`;
+        
+            if (inputFile.files.length > 0) {
+                const file = inputFile.files[0];
+                nomeArquivo = file.name;
+                arquivoUrl = await uploadParaStorage(file); // Envia para o Storage e pega o link
             }
-        });
 
+            const dados = {
+                data: document.getElementById('dataReceita').value,
+                categoria: document.getElementById('categoriaReceita').value,
+                descricao: document.getElementById('descricaoReceita').value,
+                valor: parseFloat(document.getElementById('valorReceita').value),
+                formaPagamento: document.getElementById('formaPagamento').value,
+                observacao: document.getElementById('obsReceita').value,
+                comprovanteNome: nomeArquivo,
+                comprovanteArquivo: arquivoUrl, // Salva o link do Storage em vez do Base64
+                tipo: 'RECEITA',
+                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            await db.collection("financeiro_movimentacoes").add(dados);
+            alert("✅ Receita registrada com sucesso!");
+            document.getElementById('formReceita').reset();
+            document.getElementById('dataReceita').value = new Date().toISOString().split('T')[0];
+            carregarCategoriasReceita();
+        } catch (error) {
+            console.error("Erro ao salvar receita:", error);
+            alert("⚠️ Erro ao registrar receita. Verifique o tamanho ou conexão.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar Receita`;
+        }
+    });
         window.onload = () => {
             carregarCategoriasReceita();
         };
