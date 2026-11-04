@@ -13,6 +13,7 @@ function aplicarControleAcesso() {
     // 2. SÓCIO: Nunca pode alterar nada em nenhuma página
     if (perfilApolo === 'SOCIO') {
         bloquearAcoesEscrita();
+        observarElementosDinamicos();
         return;
     }
 
@@ -25,6 +26,7 @@ function aplicarControleAcesso() {
     if (éSalao) {
         if (perfilApolo === 'TESOUREIRO' || perfilApolo === 'SOCIO') {
             bloquearAcoesEscrita();
+            observarElementosDinamicos();
         }
     }
 
@@ -40,29 +42,59 @@ function aplicarControleAcesso() {
     if (éFinanceiro) {
         if (perfilApolo === 'PRESIDENTE' || perfilApolo === 'SOCIO') {
             bloquearAcoesEscrita();
+            observarElementosDinamicos();
         }
     }
 }
 
-// Função auxiliar que desativa de forma abrangente TODOS os botões e elementos de escrita
-function bloquearAcoesEscrita() {
-    window.addEventListener('DOMContentLoaded', () => {
-        // Seleciona todos os botões, inputs de submissão e campos de ficheiro/upload da página
-        const elementosBloquear = document.querySelectorAll(
-            'button, input[type="submit"], input[type="button"], input[type="file"], .btn-salvar, .btn-excluir, .btn-incluir, .btn-novo'
-        );
+// Função que aplica o bloqueio visual e funcional num elemento, protegendo o botão de Sair
+function aplicarBloqueioEm(el) {
+    // Proteção absoluta: nunca bloqueia o botão de Sair ou funções de logout
+    if (el.getAttribute('onclick')?.includes('fazerLogout') || el.innerText.includes('Sair') || el.querySelector('.fa-right-from-bracket')) {
+        return;
+    }
 
-        elementosBloquear.forEach(el => {
-            // Desativa o elemento para impedir qualquer clique ou ação de inclusão/alteração
-            el.disabled = true;
-            el.style.opacity = '0.5';
-            el.style.cursor = 'not-allowed';
-            el.title = "Acesso restrito: O seu perfil é apenas de consulta nesta área.";
-        });
-
-        console.log("🔒 Modo restrito (Apenas Consulta) ativado para o perfil:", perfilApolo);
-    });
+    el.disabled = true;
+    el.style.opacity = '0.5';
+    el.style.cursor = 'not-allowed';
+    el.title = "Acesso restrito: O seu perfil é apenas de consulta nesta área.";
 }
 
-// Executa a verificação assim que o script é carregado na página
+// Desativa os elementos estáticos já presentes no HTML
+function bloquearAcoesEscrita() {
+    const processar = () => {
+        const elementosBloquear = document.querySelectorAll(
+            'button, input[type="submit"], input[type="button"], input[type="file"], .btn-salvar, .btn-excluir, .btn-incluir, .btn-novo, .fa-trash, .fa-trash-can'
+        );
+        elementosBloquear.forEach(aplicarBloqueioEm);
+    };
+
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', processar);
+    } else {
+        processar();
+    }
+}
+
+// Monitoriza a página em tempo real para bloquear botões criados dinamicamente (ex: linhas da tabela do Firestore)
+function observarElementosDinamicos() {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) { // Verifica se é um elemento HTML
+                    if (node.matches('button, .btn-excluir, .fa-trash, .fa-trash-can')) {
+                        aplicarBloqueioEm(node);
+                    }
+                    // Procura também dentro de novos blocos inseridos na tabela
+                    node.querySelectorAll('button, input[type="submit"], input[type="button"], .btn-salvar, .btn-excluir, .btn-incluir, .btn-novo, .fa-trash, .fa-trash-can')
+                        .forEach(aplicarBloqueioEm);
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Executa a verificação assim que o script é carregado
 aplicarControleAcesso();
