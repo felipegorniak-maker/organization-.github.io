@@ -8,8 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 	<script src="permissoes.js"></script>
 	<script>
-    // Verifica se existe um perfil guardado. Se não houver, redireciona imediatamente para o login
-    	if (!localStorage.getItem('perfilApolo')) {
+    	// Verifica se existe um perfil na sessão atual. Se fechar o navegador, isso limpa-se.
+    	if (!sessionStorage.getItem('perfilApolo')) {
         	window.location.href = "login.html";
     	}
 	</script>
