@@ -11,6 +11,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800 pb-12">
 
@@ -170,34 +171,37 @@
             }
         }
 
-        const converterParaBase64 = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        };
+        // Função para enviar ficheiro para o Firebase Storage
+        async function uploadParaStorage(file, pasta) {
+            if (!file) return null;
+            const nomeUnico = Date.now() + '_' + file.name;
+            const storageRef = firebase.storage().ref().child(pasta + '/' + nomeUnico);
+            const snapshot = await storageRef.put(file);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+            return downloadURL;
+        }
 
         document.getElementById('formDespesa').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvarDespesa');
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processando e salvando...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando documentos e salvando...`;
 
             try {
                 let faturaObj = null;
                 const inputFatura = document.getElementById('arquivoFatura');
                 if (inputFatura.files.length > 0) {
                     const file = inputFatura.files[0];
-                    faturaObj = { nome: file.name, arquivo: await converterParaBase64(file) };
+                    const urlFatura = await uploadParaStorage(file, 'faturas');
+                    faturaObj = { nome: file.name, arquivo: urlFatura };
                 }
 
                 let comprovanteObj = null;
                 const inputComprovante = document.getElementById('arquivoComprovante');
                 if (inputComprovante.files.length > 0) {
                     const file = inputComprovante.files[0];
-                    comprovanteObj = { nome: file.name, arquivo: await converterParaBase64(file) };
+                    const urlComprovante = await uploadParaStorage(file, 'comprovantes');
+                    comprovanteObj = { nome: file.name, arquivo: urlComprovante };
                 }
 
                 const dados = {
@@ -220,7 +224,7 @@
                 carregarCategoriasDespesa();
             } catch (error) {
                 console.error("Erro ao salvar despesa:", error);
-                alert("⚠️ Erro ao registrar despesa.");
+                alert("⚠️ Erro ao registrar despesa. Verifique o tamanho ou conexão.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar Despesa com Documentos`;
