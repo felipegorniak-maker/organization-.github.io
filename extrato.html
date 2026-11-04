@@ -102,19 +102,40 @@
 
     </main>
 
+    <!-- Modal para Visualizar Documentos/Anexos -->
+    <div id="modalAnexo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 id="tituloModalAnexo" class="font-bold text-sm">Visualizar Anexo</h3>
+                <button onclick="fecharModalAnexo()" class="text-indigo-200 hover:text-white text-lg font-bold px-2">&times;</button>
+            </div>
+            <div class="p-4 flex-grow overflow-auto flex items-center justify-center bg-slate-100" id="conteudoAnexoModal">
+                <!-- Conteúdo injetado via JS -->
+            </div>
+            <div class="bg-white px-6 py-3 border-t flex justify-end gap-2">
+                <a id="btnBaixarAnexo" href="#" download="comprovante" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow transition">
+                    <i class="fa-solid fa-download mr-1"></i> Descarregar Ficheiro
+                </a>
+                <button onclick="fecharModalAnexo()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl transition">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Rodapé -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
         Associação de Moradores do Conjunto Apolo &copy; 2026 - Todos os direitos reservados.
     </footer>
 
     <script>
-        // Define o mês atual como padrão no filtro (ex: 2026-11)
+        // Define o mês atual como padrão no filtro
         const dataAtual = new Date();
         const anoAtual = dataAtual.getFullYear();
         const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
         document.getElementById('filtroMes').value = `${anoAtual}-${mesAtual}`;
 
-        // Configuração do Firebase (Substitua pelas suas chaves)
+        // Configuração do Firebase (Insira as suas chaves oficiais aqui)
         const firebaseConfig = {
             apiKey: "AIzaSyDkJAyKwwpI2-0JuupYqDbRge0aBvKP8EI",
             authDomain: "contratos-apolo.firebaseapp.com",
@@ -129,6 +150,39 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+
+        // Função para abrir o anexo num Modal bonito
+        window.abrirAnexo = function(base64Data, nomeOriginal) {
+            if (!base64Data) {
+                alert("Nenhum ficheiro anexado.");
+                return;
+            }
+
+            const modal = document.getElementById('modalAnexo');
+            const container = document.getElementById('conteudoAnexoModal');
+            const titulo = document.getElementById('tituloModalAnexo');
+            const btnBaixar = document.getElementById('btnBaixarAnexo');
+
+            titulo.innerText = `Anexo: ${nomeOriginal || 'Documento'}`;
+            btnBaixar.href = base64Data;
+            btnBaixar.download = nomeOriginal || 'comprovante';
+
+            // Verifica se é PDF ou imagem
+            if (base64Data.includes('application/pdf')) {
+                container.innerHTML = `<iframe src="${base64Data}" class="w-full h-[65vh] rounded-lg border bg-white"></iframe>`;
+            } else if (base64Data.includes('image/')) {
+                container.innerHTML = `<img src="${base64Data}" class="max-w-full max-h-[65vh] object-contain rounded-lg shadow" />`;
+            } else {
+                container.innerHTML = `<p class="text-xs text-slate-600">Este formato não suporta pré-visualização direta. Utilize o botão abaixo para descarregar.</p>`;
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.fecharModalAnexo = function() {
+            document.getElementById('modalAnexo').classList.add('hidden');
+            document.getElementById('conteudoAnexoModal').innerHTML = '';
+        };
 
         // Função principal para carregar o extrato do Firebase
         async function carregarExtrato() {
@@ -149,10 +203,9 @@
                     const item = docSnap.data();
                     const idDoc = docSnap.id;
 
-                    // Filtra pelo mês selecionado se o campo estiver preenchido
                     if (filtroMesVal && item.data) {
-                        const mesItem = item.data.substring(0, 7); // Pega "YYYY-MM"
-                        if (mesItem !== filtroMesVal) return; // Ignora se não pertencer ao mês
+                        const mesItem = item.data.substring(0, 7);
+                        if (mesItem !== filtroMesVal) return;
                     }
 
                     contador++;
@@ -165,20 +218,19 @@
                         totalDespesas += valorNum;
                     }
 
-                    // Formatação de data (YYYY-MM-DD para DD/MM/YYYY)
                     const partesData = item.data ? item.data.split('-') : ['', '', ''];
                     const dataFormatada = partesData.length === 3 ? `${partesData[2]}/${partesData[1]}/${partesData[0]}` : item.data;
 
-                    // Monta os botões de anexos (fatura ou comprovante) se existirem
+                    // Monta os botões de anexos seguros chamando a função abrirAnexo
                     let botoesAnexos = '';
-                    if (item.comprovanteArquivo) { // Compatibilidade com registos antigos
-                        botoesAnexos += `<a href="${item.comprovanteArquivo}" target="_blank" title="${item.comprovanteNome || 'Comprovante'}" class="inline-block bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-md mx-0.5 text-[10px]"><i class="fa-solid fa-paperclip"></i></a>`;
+                    if (item.comprovanteArquivo) {
+                        botoesAnexos += `<button onclick="abrirAnexo('${item.comprovanteArquivo}', '${item.comprovanteNome || 'Comprovante'}')" title="${item.comprovanteNome || 'Comprovante'}" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-paperclip"></i></button>`;
                     }
                     if (item.fatura && item.fatura.arquivo) {
-                        botoesAnexos += `<a href="${item.fatura.arquivo}" target="_blank" title="Fatura: ${item.fatura.nome}" class="inline-block bg-rose-50 hover:bg-rose-100 text-rose-700 p-1.5 rounded-md mx-0.5 text-[10px]"><i class="fa-solid fa-file-pdf"></i></a>`;
+                        botoesAnexos += `<button onclick="abrirAnexo('${item.fatura.arquivo}', '${item.fatura.nome}')" title="Fatura: ${item.fatura.nome}" class="bg-rose-50 hover:bg-rose-100 text-rose-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-file-pdf"></i></button>`;
                     }
                     if (item.comprovante && item.comprovante.arquivo) {
-                        botoesAnexos += `<a href="${item.comprovante.arquivo}" target="_blank" title="Recibo: ${item.comprovante.nome}" class="inline-block bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-1.5 rounded-md mx-0.5 text-[10px]"><i class="fa-solid fa-receipt"></i></a>`;
+                        botoesAnexos += `<button onclick="abrirAnexo('${item.comprovante.arquivo}', '${item.comprovante.nome}')" title="Recibo: ${item.comprovante.nome}" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-receipt"></i></button>`;
                     }
                     if (!botoesAnexos) {
                         botoesAnexos = `<span class="text-slate-300">-</span>`;
@@ -214,7 +266,6 @@
                     tbody.innerHTML = htmlTabela;
                 }
 
-                // Atualiza os totais nos cards
                 const saldo = totalReceitas - totalDespesas;
                 document.getElementById('txtTotalReceitas').innerText = `R$ ${totalReceitas.toFixed(2).replace('.', ',')}`;
                 document.getElementById('txtTotalDespesas').innerText = `R$ ${totalDespesas.toFixed(2).replace('.', ',')}`;
@@ -227,11 +278,10 @@
 
             } catch (error) {
                 console.error("Erro ao carregar extrato:", error);
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-rose-500">Erro ao carregar dados do Firebase. Verifique a consola.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-rose-500">Erro ao carregar dados do Firebase.</td></tr>`;
             }
         }
 
-        // Função para apagar um lançamento por segurança
         async function excluirLancamento(id) {
             if (confirm("Tem certeza de que deseja excluir este lançamento financeiro?")) {
                 try {
@@ -245,7 +295,6 @@
             }
         }
 
-        // Carrega o extrato automaticamente ao abrir a página
         window.onload = () => {
             carregarExtrato();
         };
