@@ -47,20 +47,41 @@ function aplicarControleAcesso() {
     }
 }
 
-// Função que aplica o bloqueio visual e funcional num elemento, protegendo o botão de Sair
+// Função que bloqueia o elemento e neutraliza ações de exclusão/clique
 function aplicarBloqueioEm(el) {
-    // Proteção absoluta: nunca bloqueia o botão de Sair ou funções de logout
-    if (el.getAttribute('onclick')?.includes('fazerLogout') || el.innerText.includes('Sair') || el.querySelector('.fa-right-from-bracket')) {
+    // Proteção absoluta: nunca bloqueia o botão de Sair
+    if (el.getAttribute('onclick')?.includes('fazerLogout') || el.innerText.includes('Sair') || el.querySelector?.('.fa-right-from-bracket')) {
         return;
     }
 
     el.disabled = true;
-    el.style.opacity = '0.5';
+    el.style.opacity = '0.4';
     el.style.cursor = 'not-allowed';
     el.title = "Acesso restrito: O seu perfil é apenas de consulta nesta área.";
+
+    // Se for um botão, ícone de lixeira ou célula de ações, bloqueia o clique para não disparar o confirm/exclusão
+    el.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        alert("⚠️ Acesso restrito: O seu perfil não tem permissão para excluir registos nesta área.");
+        return false;
+    };
+
+    // Se tiver elementos pai que capturam o clique (como a célula da tabela <td> ou botão envolvente)
+    const pai = el.closest('td, button, a');
+    if (pai && !pai.tagName.toLowerCase().includes('header')) {
+        pai.style.opacity = '0.4';
+        pai.style.cursor = 'not-allowed';
+        pai.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("⚠️ Acesso restrito: O seu perfil não tem permissão para excluir registos nesta área.");
+            return false;
+        };
+    }
 }
 
-// Desativa os elementos estáticos já presentes no HTML
+// Desativa os elementos estáticos já presentes
 function bloquearAcoesEscrita() {
     const processar = () => {
         const elementosBloquear = document.querySelectorAll(
@@ -76,17 +97,16 @@ function bloquearAcoesEscrita() {
     }
 }
 
-// Monitoriza a página em tempo real para bloquear botões criados dinamicamente (ex: linhas da tabela do Firestore)
+// Monitoriza a página em tempo real para apanhar lixeiras e botões gerados dinamicamente pelas tabelas do Firebase
 function observarElementosDinamicos() {
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) { // Verifica se é um elemento HTML
-                    if (node.matches('button, .btn-excluir, .fa-trash, .fa-trash-can')) {
+                if (node.nodeType === 1) {
+                    if (node.matches('button, .btn-excluir, .fa-trash, .fa-trash-can, td')) {
                         aplicarBloqueioEm(node);
                     }
-                    // Procura também dentro de novos blocos inseridos na tabela
-                    node.querySelectorAll('button, input[type="submit"], input[type="button"], .btn-salvar, .btn-excluir, .btn-incluir, .btn-novo, .fa-trash, .fa-trash-can')
+                    node.querySelectorAll('button, input[type="submit"], input[type="button"], .btn-salvar, .btn-excluir, .btn-incluir, .btn-novo, .fa-trash, .fa-trash-can, td')
                         .forEach(aplicarBloqueioEm);
                 }
             });
@@ -97,4 +117,5 @@ function observarElementosDinamicos() {
 }
 
 // Executa a verificação assim que o script é carregado
+aplicarControleAcesso();
 aplicarControleAcesso();
