@@ -1,5 +1,5 @@
 // Recupera o perfil guardado no login (se não houver, assume SOCIO por segurança)
-const perfilApolo = localStorage.getItem('perfilApolo') || 'SOCIO';
+const perfilApolo = sessionStorage.getItem('perfilApolo') || 'SOCIO';
 
 // Função principal para aplicar as regras dos 4 perfis
 function aplicarControleAcesso() {
