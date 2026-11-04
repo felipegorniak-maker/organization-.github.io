@@ -3,106 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda do Salão - Associação Apolo</title>
+    <title>Opções do Salão - Associação Apolo</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase App e Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-indigo-900 min-h-screen flex flex-col justify-between font-sans text-slate-800">
+<body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800 pb-12">
 
     <!-- Cabeçalho -->
-    <header class="bg-indigo-900 text-white py-8 px-6">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center">
-            <div>
-                <a href="salao.html" class="inline-flex items-center text-xs font-medium text-indigo-200 hover:text-white transition-colors mb-2">
-                    ← Voltar para Gestão do Salão
-                </a>
-                <h1 class="text-2xl font-bold tracking-wide">Agenda de Locações</h1>
-                <p class="text-indigo-200 text-sm mt-1">Salão de Festas - Conjunto Apolo</p>
+    <header class="bg-indigo-900 text-white shadow-md py-6 px-8 sticky top-0 z-40">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-house-chimney text-2xl text-amber-400"></i>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight">Associação Apolo</h1>
+                    <p class="text-xs text-indigo-200">Módulo de Salão de Festas</p>
+                </div>
             </div>
-            <a href="contrato.html" class="mt-4 sm:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow">
-                + Novo Agendamento
-            </a>
+            <span class="bg-amber-500 text-slate-950 text-xs px-3 py-1 rounded-full font-bold">
+                🎉 Salão
+            </span>
         </div>
     </header>
 
-    <!-- Conteúdo Principal -->
-    <main class="max-w-4xl mx-auto px-6 py-6 flex-grow w-full">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    📅 Datas Agendadas (Tempo Real)
-                </h2>
-                <span class="text-xs bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-medium">
-                    Atualização Automática
-                </span>
-            </div>
+    <!-- Conteúdo Principal / Grelha de Cartões Original -->
+    <main class="max-w-xl mx-auto px-4 py-8 flex-grow w-full space-y-6">
+        
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Opções do Salão</h2>
 
-            <!-- Lista de Compromissos -->
-            <div id="listaAgenda" class="space-y-3">
-                <p class="text-slate-400 text-sm text-center py-6">Carregando compromissos...</p>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Botão CONTRATO -->
+            <a href="contrato.html" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-amber-400 hover:shadow-md transition flex flex-col items-center justify-center text-center group">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm tracking-wide">CONTRATO</h3>
+                <p class="text-xs text-slate-400 mt-1">Gerar contrato de locação e bloquear data</p>
+            </a>
+
+            <!-- Botão AGENDA (Aponta direto para agenda.html) -->
+            <a href="agenda.html" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-400 hover:shadow-md transition flex flex-col items-center justify-center text-center group">
+                <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm tracking-wide">AGENDA</h3>
+                <p class="text-xs text-slate-400 mt-1">Visualizar locações agendadas em tempo real</p>
+            </a>
+
+            <!-- Botão RELAÇÃO DE BENS -->
+            <a href="#" onclick="alert('Módulo de Relação de Bens em breve!'); return false;" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-emerald-400 hover:shadow-md transition flex flex-col items-center justify-center text-center group">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm tracking-wide">RELAÇÃO DE BENS</h3>
+                <p class="text-xs text-slate-400 mt-1">Inventário de móveis, louças e equipamentos</p>
+            </a>
+
+            <!-- Botão VOLTAR -->
+            <a href="index.html" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-slate-400 hover:shadow-md transition flex flex-col items-center justify-center text-center group">
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm tracking-wide">VOLTAR</h3>
+                <p class="text-xs text-slate-400 mt-1">Retornar ao painel administrativo principal</p>
+            </a>
+
         </div>
+
     </main>
 
+    <!-- Rodapé -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
         Associação de Moradores do Conjunto Apolo &copy; 2026 - Todos os direitos reservados.
     </footer>
-
-    <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDkJAyKwwpI2-0JuupYqDbRge0aBvKP8EI",
-            authDomain: "contratos-apolo.firebaseapp.com",
-            projectId: "contratos-apolo",
-            storageBucket: "contratos-apolo.firebasestorage.app",
-            messagingSenderId: "259554157159",
-            appId: "1:259554157159:web:7b37146ae4bc1090b22ac2",
-            measurementId: "G-YXMMKSGY7B"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore();
-
-        // Consulta os agendamentos em tempo real
-        db.collection("agenda").orderBy("data", "asc").onSnapshot((snapshot) => {
-            const container = document.getElementById("listaAgenda");
-            container.innerHTML = "";
-
-            if (snapshot.empty) {
-                container.innerHTML = `<p class="text-slate-400 text-sm text-center py-6">Nenhum evento agendado no momento.</p>`;
-                return;
-            }
-
-            snapshot.forEach((doc) => {
-                const item = doc.data();
-                let dataFormatada = item.data;
-                
-                if (item.data && item.data.includes("-")) {
-                    const [ano, mes, dia] = item.data.split("-");
-                    dataFormatada = `${dia}/${mes}/${ano}`;
-                }
-
-                container.innerHTML += `
-                    <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition">
-                        <div>
-                            <h4 class="font-bold text-slate-800">${item.nome}</h4>
-                            <p class="text-xs text-slate-500 mt-0.5">📅 ${dataFormatada} às ${item.horario || '09:00'}</p>
-                        </div>
-                        <span class="bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-lg border border-emerald-200">
-                            Confirmado
-                        </span>
-                    </div>
-                `;
-            });
-        }, (error) => {
-            console.error("Erro ao carregar a agenda:", error);
-            document.getElementById("listaAgenda").innerHTML = `<p class="text-rose-500 text-sm text-center py-6">Erro ao carregar dados do Firebase.</p>`;
-        });
-    </script>
 </body>
 </html>
