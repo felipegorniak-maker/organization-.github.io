@@ -72,11 +72,13 @@
                 
                 if (docUser.exists) {
                     const dadosUser = docUser.data();
-                    localStorage.setItem('perfilApolo', dadosUser.perfil); // Ex: 'admin' ou 'consulta'
+                    // Guarda exatamente o perfil registado no Firestore (ADMIN, TESOUREIRO, PRESIDENTE ou SOCIO)
+                    localStorage.setItem('perfilApolo', dadosUser.perfil); 
                     localStorage.setItem('nomeApolo', dadosUser.nome);
                 } else {
-                    // Se não estiver na tabela, assume consulta por segurança
-                    localStorage.setItem('perfilApolo', 'consulta');
+                    // Se o utilizador autenticou mas não tem documento na tabela "usuarios", assume SÓCIO por segurança
+                    localStorage.setItem('perfilApolo', 'SOCIO');
+                    localStorage.setItem('nomeApolo', 'Membro');
                 }
 
                 window.location.href = "finanças.html"; // Redireciona para o painel principal
