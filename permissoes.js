@@ -1,62 +1,68 @@
-// Recupera o perfil guardado no login (se não houver, assume SOCIO por segurança)
+// Recupera o perfil guardado na sessão (se não houver, assume SOCIO por segurança)
 const perfilApolo = sessionStorage.getItem('perfilApolo') || 'SOCIO';
 
-// Função principal para aplicar as regras dos 4 perfis
+// Função principal para aplicar as regras de controlo de acesso por módulo
 function aplicarControleAcesso() {
     const caminhoPagina = window.location.pathname.toLowerCase();
 
-    // 1. SÓCIO: Não pode fazer nada, apenas consultar
+    // 1. ADMIN: Tem acesso total a tudo (não bloqueia nada)
+    if (perfilApolo === 'ADMIN') {
+        return;
+    }
+
+    // 2. SÓCIO: Nunca pode alterar nada em nenhuma página
     if (perfilApolo === 'SOCIO') {
         bloquearAcoesEscrita();
         return;
     }
 
-    // 2. TESOUREIRO: Apenas mexe na parte financeira. Nas outras, bloqueia.
-    if (perfilApolo === 'TESOUREIRO') {
-        const éFinanceiro = caminhoPagina.includes('financa') || 
-                           caminhoPagina.includes('receita') || 
-                           caminhoPagina.includes('despesa') || 
-                           caminhoPagina.includes('extrato');
-        if (!éFinanceiro) {
+    // 3. MÓDULO SALÃO (Contrato, Agenda, Salão)
+    // Regra: Alterar = ADMIN / PRESIDENTE | Consultar = TESOUREIRO / SOCIO
+    const éSalao = caminhoPagina.includes('salao') || 
+                   caminhoPagina.includes('contrato') || 
+                   caminhoPagina.includes('agenda');
+                   
+    if (éSalao) {
+        if (perfilApolo === 'TESOUREIRO' || perfilApolo === 'SOCIO') {
             bloquearAcoesEscrita();
         }
     }
 
-    // 3. PRESIDENTE: Mexe no Salão, Quadras e Atas. Nas finanças, bloqueia.
-    if (perfilApolo === 'PRESIDENTE') {
-        const éFinanceiro = caminhoPagina.includes('financa') || 
-                           caminhoPagina.includes('receita') || 
-                           caminhoPagina.includes('despesa') || 
-                           caminhoPagina.includes('extrato');
-        if (éFinanceiro) {
+    // 4. MÓDULO FINANÇAS (Receita, Despesa, Extrato, Fluxo de Caixa, Categorias)
+    // Regra: Alterar = ADMIN / TESOUREIRO | Consultar = PRESIDENTE / SOCIO
+    const éFinanceiro = caminhoPagina.includes('financa') || 
+                       caminhoPagina.includes('receita') || 
+                       caminhoPagina.includes('despesa') || 
+                       caminhoPagina.includes('extrato') ||
+                       caminhoPagina.includes('fluxo') ||
+                       caminhoPagina.includes('categoria');
+                       
+    if (éFinanceiro) {
+        if (perfilApolo === 'PRESIDENTE' || perfilApolo === 'SOCIO') {
             bloquearAcoesEscrita();
         }
     }
-
-    // 4. ADMIN: Tem acesso total a tudo (não faz nada, deixa passar).
 }
 
-// Função auxiliar que desativa botões de salvamento, exclusão e inputs de ficheiros
+// Função auxiliar que desativa de forma abrangente TODOS os botões e elementos de escrita
 function bloquearAcoesEscrita() {
     window.addEventListener('DOMContentLoaded', () => {
-        // Desativa botões de submissão/salvar
-        const botoes = document.querySelectorAll('button[type="submit"], .btn-salvar, .btn-excluir, #btnSalvarReceita, #btnSalvarDespesa');
-        botoes.forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-            btn.title = "Acesso restrito: O seu perfil é apenas de consulta nesta área.";
+        // Seleciona todos os botões, inputs de submissão e campos de ficheiro/upload da página
+        const elementosBloquear = document.querySelectorAll(
+            'button, input[type="submit"], input[type="button"], input[type="file"], .btn-salvar, .btn-excluir, .btn-incluir, .btn-novo'
+        );
+
+        elementosBloquear.forEach(el => {
+            // Desativa o elemento para impedir qualquer clique ou ação de inclusão/alteração
+            el.disabled = true;
+            el.style.opacity = '0.5';
+            el.style.cursor = 'not-allowed';
+            el.title = "Acesso restrito: O seu perfil é apenas de consulta nesta área.";
         });
 
-        // Desativa campos de seleção de ficheiros (Uploads)
-        const inputsFile = document.querySelectorAll('input[type="file"]');
-        inputsFile.forEach(input => {
-            input.disabled = true;
-        });
-
-        console.log("🔒 Modo de restrição ativo para o perfil:", perfilApolo);
+        console.log("🔒 Modo restrito (Apenas Consulta) ativado para o perfil:", perfilApolo);
     });
 }
 
-// Executa a verificação assim que o script é carregado
+// Executa a verificação assim que o script é carregado na página
 aplicarControleAcesso();
