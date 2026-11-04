@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Finanças - Associação Apolo</title>
+    <!-- Carregamento do Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800">
+
+    <!-- Cabeçalho -->
+    <header class="bg-indigo-900 text-white shadow-md py-6 px-8">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-wide">Associação Apolo</h1>
+                <p class="text-indigo-200 text-sm mt-1">Módulo de Gestão: Finanças</p>
+            </div>
+            <div class="mt-4 sm:mt-0 bg-indigo-800 px-4 py-2 rounded-lg text-xs font-medium text-indigo-100 border border-indigo-700">
+                🏢 Posição consolidada
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal / Grelha de Botões -->
+    <main class="max-w-4xl mx-auto px-6 py-12 flex-grow w-full">
+        <h2 class="text-lg font-semibold text-slate-700 mb-6 border-b pb-2">Controle Financeiro</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            
+            <!-- 1. RECEITA -->
+            <a href="receita.html" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 flex flex-col items-center text-center group hover:-translate-y-1">
+                <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    💲
+                </div>
+                <h3 class="font-bold text-slate-800 mb-1 text-lg">RECEITA</h3>
+                <p class="text-xs text-slate-500">Lançar receitas geradas</p>
+            </a>
+
+            <!-- 2. DESPESA -->
+            <a href="despesa.html" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 flex flex-col items-center text-center group hover:-translate-y-1">
+                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    💸
+                </div>
+                <h3 class="font-bold text-slate-800 mb-1 text-lg">DESPESA</h3>
+                <p class="text-xs text-slate-500">Lançar despesas geradas</p>
+            </a>
+
+            <!-- 3. EXTRATO MENSAL/ANUAL -->
+            <button onclick="alert('Módulo de Extrato em desenvolvimento!')" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 flex flex-col items-center text-center group hover:-translate-y-1 w-full">
+                <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    📋
+                </div>
+                <h3 class="font-bold text-slate-800 mb-1 text-lg">EXTRATO MENSAL/ANUAL</h3>
+                <p class="text-xs text-slate-500">Verificar extrato mensal/anual</p>
+            </button>
+
+            <!-- 4. NOVO BOTÃO: FLUXO DE CAIXA -->
+            <button onclick="alert('Módulo de Fluxo de Caixa em desenvolvimento!')" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 flex flex-col items-center text-center group hover:-translate-y-1 w-full">
+                <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                    📊
+                </div>
+                <h3 class="font-bold text-slate-800 mb-1 text-lg">FLUXO DE CAIXA</h3>
+                <p class="text-xs text-slate-500">Acompanhar saldo e movimentações</p>
+            </button>
+
+            <!-- 5. NOVO BOTÃO: CENTRO DE CUSTOS -->
+            <button onclick="alert('Módulo de Centro de Custos em desenvolvimento!')" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 flex flex-col items-center text-center group hover:-translate-y-1 w-full">
+                <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                    📁
+                </div>
+                <h3 class="font-bold text-slate-800 mb-1 text-lg">CATEGORIAS / CUSTOS</h3>
+                <p class="text-xs text-slate-500">Gerir centros de custos e contas</p>
+            </button>
+
+            <!-- 6. VOLTAR (Sempre mantido estritamente na última posição) -->
+            <a href="botoes_principal.html" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 flex flex-col items-center text-center group hover:-translate-y-1">
+                <div class="w-14 h-14 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:bg-slate-700 group-hover:text-white transition-colors">
+                    ↩️
+                </div>
+                <h3 class="font-bold text-slate-800 mb-1 text-lg">VOLTAR</h3>
+                <p class="text-xs text-slate-500">Retornar ao painel administrativo principal</p>
+            </a>
+
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        Associação de Moradores do Conjunto Apolo &copy; 2026 - Todos os direitos reservados.
+    </footer>
+
+</body>
+</html>

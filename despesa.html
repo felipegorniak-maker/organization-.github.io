@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lançar Despesa - Associação Apolo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800 pb-12">
+
+    <!-- Cabeçalho -->
+    <header class="bg-indigo-900 text-white shadow-md py-6 px-8 sticky top-0 z-40">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-file-invoice-dollar text-2xl text-rose-400"></i>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight">Associação Apolo</h1>
+                    <p class="text-xs text-indigo-200">Lançamento de Saída / Despesa</p>
+                </div>
+            </div>
+            <span class="bg-rose-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                - Saída
+            </span>
+        </div>
+    </header>
+
+    <!-- Botão Voltar Alinhado -->
+    <div class="max-w-2xl mx-auto px-4 mt-6 w-full">
+        <a href="finanças.html" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center gap-2 transition group">
+            <i class="fa-solid fa-arrow-left text-indigo-600 group-hover:-translate-x-1 transition-transform"></i>
+            <span>Voltar para o Menu de Finanças</span>
+        </a>
+    </div>
+
+    <!-- Conteúdo Principal / Formulário -->
+    <main class="max-w-2xl mx-auto px-4 py-6 flex-grow w-full">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2">
+                <i class="fa-solid fa-circle-minus text-rose-600"></i>
+                Registrar Nova Despesa
+            </h2>
+
+            <form id="formDespesa" class="space-y-4">
+                
+                <!-- Data e Categoria -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Data do Pagamento *</label>
+                        <input type="date" id="dataDespesa" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria / Centro de Custo *</label>
+                        <select id="categoriaDespesa" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none bg-white">
+                            <option value="">A carregar categorias...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Descrição -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição / Fornecedor *</label>
+                    <input type="text" id="descricaoDespesa" placeholder="Ex: Conta de Luz COPEL - Referente ao mês corrente" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                </div>
+
+                <!-- Valor e Forma de Pagamento -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$) *</label>
+                        <input type="number" step="0.01" id="valorDespesa" placeholder="0.00" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none text-rose-700 font-bold">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Forma de Pagamento *</label>
+                        <select id="formaPagamentoDespesa" required class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none bg-white">
+                            <option value="PIX">PIX</option>
+                            <option value="Boleto">Boleto Bancário</option>
+                            <option value="Dinheiro">Dinheiro em Espécie</option>
+                            <option value="Cartão">Cartão da Associação</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Seção de Anexos: Dois campos separados -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    
+                    <!-- 1. Fatura / Conta Original -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            <i class="fa-solid fa-file-pdf text-rose-600 mr-1"></i> Fatura / Conta (Opcional)
+                        </label>
+                        <input type="file" id="arquivoFatura" accept=".pdf, image/png, image/jpeg, image/jpg" class="w-full p-2 border border-slate-300 rounded-lg text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 cursor-pointer bg-white">
+                        <p class="text-[9px] text-slate-400 mt-1">PDF ou foto da conta de luz/água.</p>
+                    </div>
+
+                    <!-- 2. Comprovante de Pagamento -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            <i class="fa-solid fa-receipt text-emerald-600 mr-1"></i> Comprovante PIX/Recibo (Opcional)
+                        </label>
+                        <input type="file" id="arquivoComprovante" accept=".pdf, image/png, image/jpeg, image/jpg" capture="environment" class="w-full p-2 border border-slate-300 rounded-lg text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer bg-white">
+                        <p class="text-[9px] text-slate-400 mt-1">Tire foto com a câmara ou anexe o recibo.</p>
+                    </div>
+
+                </div>
+
+                <!-- Observação -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Observações (Opcional)</label>
+                    <textarea id="obsDespesa" rows="2" placeholder="Ex: Pago com desconto de pontualidade" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
+                </div>
+
+                <!-- Botão Salvar -->
+                <button type="submit" id="btnSalvarDespesa" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Salvar Despesa com Documentos</span>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        Associação de Moradores do Conjunto Apolo &copy; 2026 - Todos os direitos reservados.
+    </footer>
+
+    <script>
+        document.getElementById('dataDespesa').value = new Date().toISOString().split('T')[0];
+
+        const firebaseConfig = {
+            // Suas credenciais do Firebase entram aqui
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Carrega automaticamente as categorias de DESPESA do módulo de Categorias
+        async function carregarCategoriasDespesa() {
+            const select = document.getElementById('categoriaDespesa');
+            try {
+                const snapshot = await db.collection("financeiro_categorias").where("tipo", "==", "DESPESA").orderBy('nome').get();
+                select.innerHTML = '<option value="">Selecione a categoria...</option>';
+                
+                if (snapshot.empty) {
+                    select.innerHTML = '<option value="">Nenhuma categoria cadastrada</option>';
+                    return;
+                }
+
+                snapshot.forEach(docSnap => {
+                    const cat = docSnap.data();
+                    select.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
+                });
+            } catch (error) {
+                console.error("Erro ao carregar categorias:", error);
+                select.innerHTML = '<option value="">Erro ao carregar categorias</option>';
+            }
+        }
+
+        const converterParaBase64 = (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        };
+
+        document.getElementById('formDespesa').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarDespesa');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processando e salvando...`;
+
+            try {
+                let faturaObj = null;
+                const inputFatura = document.getElementById('arquivoFatura');
+                if (inputFatura.files.length > 0) {
+                    const file = inputFatura.files[0];
+                    faturaObj = { nome: file.name, arquivo: await converterParaBase64(file) };
+                }
+
+                let comprovanteObj = null;
+                const inputComprovante = document.getElementById('arquivoComprovante');
+                if (inputComprovante.files.length > 0) {
+                    const file = inputComprovante.files[0];
+                    comprovanteObj = { nome: file.name, arquivo: await converterParaBase64(file) };
+                }
+
+                const dados = {
+                    data: document.getElementById('dataDespesa').value,
+                    categoria: document.getElementById('categoriaDespesa').value,
+                    descricao: document.getElementById('descricaoDespesa').value,
+                    valor: parseFloat(document.getElementById('valorDespesa').value),
+                    formaPagamento: document.getElementById('formaPagamentoDespesa').value,
+                    observacao: document.getElementById('obsDespesa').value,
+                    fatura: faturaObj,
+                    comprovante: comprovanteObj,
+                    tipo: 'DESPESA',
+                    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                await db.collection("financeiro_movimentacoes").add(dados);
+                alert("✅ Despesa e documentos registrados com sucesso!");
+                document.getElementById('formDespesa').reset();
+                document.getElementById('dataDespesa').value = new Date().toISOString().split('T')[0];
+                carregarCategoriasDespesa();
+            } catch (error) {
+                console.error("Erro ao salvar despesa:", error);
+                alert("⚠️ Erro ao registrar despesa.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar Despesa com Documentos`;
+            }
+        });
+
+        window.onload = () => {
+            carregarCategoriasDespesa();
+        };
+    </script>
+</body>
+</html>

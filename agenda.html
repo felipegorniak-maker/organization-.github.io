@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda do Salão - Associação Apolo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase App e Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800">
+
+    <!-- Cabeçalho -->
+    <header class="bg-indigo-900 text-white shadow-md py-6 px-8">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <div>
+                <a href="salao.html" class="inline-flex items-center text-xs font-medium text-indigo-200 hover:text-white transition-colors mb-2">
+                    ← Voltar para Gestão do Salão
+                </a>
+                <h1 class="text-2xl font-bold tracking-wide">Agenda de Locações</h1>
+                <p class="text-indigo-200 text-sm mt-1">Salão de Festas - Conjunto Apolo</p>
+            </div>
+            <a href="contrato.html" class="mt-4 sm:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow">
+                + Novo Agendamento
+            </a>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="max-w-4xl mx-auto px-6 py-10 flex-grow w-full">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    📅 Datas Agendadas (Tempo Real)
+                </h2>
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-medium">
+                    Atualização Automática
+                </span>
+            </div>
+
+            <!-- Lista de Compromissos -->
+            <div id="listaAgenda" class="space-y-3">
+                <p class="text-slate-400 text-sm text-center py-6">Carregando compromissos...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        Associação de Moradores do Conjunto Apolo &copy; 2026 - Todos os direitos reservados.
+    </footer>
+
+    <script>
+        // Configuração do Firebase (use as suas credenciais do projeto)
+        const firebaseConfig = {
+            // Suas chaves do Firebase permanecem aqui
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Consulta os agendamentos em tempo real
+        db.collection("agenda").orderBy("data", "asc").onSnapshot((snapshot) => {
+            const container = document.getElementById("listaAgenda");
+            container.innerHTML = "";
+
+            if (snapshot.empty) {
+                container.innerHTML = `<p class="text-slate-400 text-sm text-center py-6">Nenhum evento agendado no momento.</p>`;
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const item = doc.data();
+                const [ano, mes, dia] = item.data.split("-");
+                const dataFormatada = `${dia}/${mes}/${ano}`;
+
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition">
+                        <div>
+                            <h4 class="font-bold text-slate-800">${item.nome}</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">📅 ${dataFormatada} às ${item.horario || '09:00'}</p>
+                        </div>
+                        <span class="bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-lg border border-emerald-200">
+                            Confirmado
+                        </span>
+                    </div>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>
