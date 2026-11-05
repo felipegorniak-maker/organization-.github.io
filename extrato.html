@@ -137,19 +137,65 @@
         </div>
     </div>
 
+    <!-- Modal para Editar Lançamento -->
+    <div id="modalEditarExtrato" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm"><i class="fa-solid fa-pen-to-square mr-2"></i> Editar Lançamento Financeiro</h3>
+                <button onclick="fecharModalEditar()" class="text-indigo-200 hover:text-white text-lg font-bold px-2">&times;</button>
+            </div>
+            <form id="formEditarExtrato" class="p-6 space-y-4">
+                <input type="hidden" id="editId">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Data *</label>
+                        <input type="date" id="editData" required class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tipo *</label>
+                        <select id="editTipo" required class="w-full p-2.5 border rounded-xl text-xs bg-white">
+                            <option value="RECEITA">RECEITA</option>
+                            <option value="DESPESA">DESPESA</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria *</label>
+                    <input type="text" id="editCategoria" required class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição / Fornecedor *</label>
+                    <input type="text" id="editDescricao" required class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Forma de Pagamento</label>
+                        <input type="text" id="editForma" class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$) *</label>
+                        <input type="number" step="0.01" id="editValor" required class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end gap-2 border-t">
+                    <button type="button" onclick="fecharModalEditar()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow transition">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Rodapé -->
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
         Associação de Moradores do Conjunto Apolo &copy; 2026 - Todos os direitos reservados.
     </footer>
 
     <script>
-        // Define o mês atual como padrão no filtro
         const dataAtual = new Date();
         const anoAtual = dataAtual.getFullYear();
         const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
         document.getElementById('filtroMes').value = `${anoAtual}-${mesAtual}`;
 
-        // Configuração do Firebase (Insira as suas chaves oficiais aqui)
         const firebaseConfig = {
             apiKey: "AIzaSyDkJAyKwwpI2-0JuupYqDbRge0aBvKP8EI",
             authDomain: "contratos-apolo.firebaseapp.com",
@@ -165,13 +211,11 @@
         }
         const db = firebase.firestore();
 
-        // Função para abrir o anexo num Modal bonito
         window.abrirAnexo = function(urlArquivo, nomeOriginal) {
             if (!urlArquivo) {
                 alert("Nenhum ficheiro anexado.");
                 return;
             }
-
             const modal = document.getElementById('modalAnexo');
             const container = document.getElementById('conteudoAnexoModal');
             const titulo = document.getElementById('tituloModalAnexo');
@@ -182,13 +226,11 @@
             btnBaixar.download = nomeOriginal || 'comprovante';
             btnBaixar.target = "_blank";
 
-            // Como é um link do Storage, o navegador exibe perfeitamente no iframe ou imagem
             if (urlArquivo.toLowerCase().includes('.pdf')) {
                 container.innerHTML = `<iframe src="${urlArquivo}" class="w-full h-[65vh] rounded-lg border bg-white"></iframe>`;
             } else {
                 container.innerHTML = `<img src="${urlArquivo}" class="max-w-full max-h-[65vh] object-contain rounded-lg shadow" />`;
             }
-
             modal.classList.remove('hidden');
         };
 
@@ -197,12 +239,11 @@
             document.getElementById('conteudoAnexoModal').innerHTML = '';
         };
 
-        // Função principal para carregar o extrato do Firebase
         async function carregarExtrato() {
             const tbody = document.getElementById('tabelaExtratoBody');
             tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Atualizando extrato...</td></tr>`;
 
-            const filtroMesVal = document.getElementById('filtroMes').value; // Formato "YYYY-MM"
+            const filtroMesVal = document.getElementById('filtroMes').value;
 
             try {
                 const snapshot = await db.collection("financeiro_movimentacoes").orderBy('data', 'desc').get();
@@ -234,25 +275,27 @@
                     const partesData = item.data ? item.data.split('-') : ['', '', ''];
                     const dataFormatada = partesData.length === 3 ? `${partesData[2]}/${partesData[1]}/${partesData[0]}` : item.data;
 
-                    // Monta os botões de anexos seguros chamando a função abrirAnexo
                     let botoesAnexos = '';
                     if (item.comprovanteArquivo) {
-                        botoesAnexos += `<button onclick="abrirAnexo('${item.comprovanteArquivo}', '${item.comprovanteNome || 'Comprovante'}')" title="${item.comprovanteNome || 'Comprovante'}" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-paperclip"></i></button>`;
+                        botoesAnexos += `<button onclick="abrirAnexo('${item.comprovanteArquivo}', '${item.comprovanteNome || 'Comprovante'}')" title="Comprovante" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-paperclip"></i></button>`;
                     }
                     if (item.fatura && item.fatura.arquivo) {
-                        botoesAnexos += `<button onclick="abrirAnexo('${item.fatura.arquivo}', '${item.fatura.nome}')" title="Fatura: ${item.fatura.nome}" class="bg-rose-50 hover:bg-rose-100 text-rose-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-file-pdf"></i></button>`;
+                        botoesAnexos += `<button onclick="abrirAnexo('${item.fatura.arquivo}', '${item.fatura.nome}')" title="Fatura" class="bg-rose-50 hover:bg-rose-100 text-rose-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-file-pdf"></i></button>`;
                     }
                     if (item.comprovante && item.comprovante.arquivo) {
-                        botoesAnexos += `<button onclick="abrirAnexo('${item.comprovante.arquivo}', '${item.comprovante.nome}')" title="Recibo: ${item.comprovante.nome}" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-receipt"></i></button>`;
+                        botoesAnexos += `<button onclick="abrirAnexo('${item.comprovante.arquivo}', '${item.comprovante.nome}')" title="Recibo" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-1.5 rounded-md mx-0.5 text-xs"><i class="fa-solid fa-receipt"></i></button>`;
                     }
                     if (!botoesAnexos) {
                         botoesAnexos = `<span class="text-slate-300">-</span>`;
                     }
 
-                    // Define se exibe a lixeira ou um traço com base na permissão do perfil
-                    const colunaAcoes = devePermitirEscrita() ? 
-                        `<button onclick="excluirLancamento('${idDoc}')" title="Excluir Lançamento" class="text-slate-400 hover:text-rose-600 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>` : 
-                        `<span class="text-slate-300">-</span>`;
+                    // Botões de Ação com verificação de permissão (Lápis + Lixeira)
+                    const dadosItemJSON = encodeURIComponent(JSON.stringify(item));
+                    const colunaAcoes = devePermitirEscrita() ? `
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick='abrirModalEditar("${idDoc}", decodeURIComponent("${dadosItemJSON}"))' title="Editar Lançamento" class="text-slate-400 hover:text-indigo-600 p-1 transition"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="excluirLancamento('${idDoc}')" title="Excluir Lançamento" class="text-slate-400 hover:text-rose-600 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>` : `<span class="text-slate-300">-</span>`;
 
                     htmlTabela += `
                         <tr class="hover:bg-slate-50 transition">
@@ -269,9 +312,7 @@
                                 ${isReceita ? '+' : '-'} R$ ${valorNum.toFixed(2).replace('.', ',')}
                             </td>
                             <td class="p-3 text-center">${botoesAnexos}</td>
-                            <td class="p-3 text-center">
-                                ${colunaAcoes}
-                            </td>
+                            <td class="p-3 text-center">${colunaAcoes}</td>
                         </tr>
                     `;
                 });
@@ -297,6 +338,45 @@
                 tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-rose-500">Erro ao carregar dados do Firebase.</td></tr>`;
             }
         }
+
+        window.abrirModalEditar = function(id, itemStr) {
+            const item = JSON.parse(itemStr);
+            document.getElementById('editId').value = id;
+            document.getElementById('editData').value = item.data || '';
+            document.getElementById('editTipo').value = item.tipo || 'DESPESA';
+            document.getElementById('editCategoria').value = item.categoria || '';
+            document.getElementById('editDescricao').value = item.descricao || '';
+            document.getElementById('editForma').value = item.formaPagamento || '';
+            document.getElementById('editValor').value = item.valor || '';
+            document.getElementById('modalEditarExtrato').classList.remove('hidden');
+        };
+
+        window.fecharModalEditar = function() {
+            document.getElementById('modalEditarExtrato').classList.add('hidden');
+        };
+
+        document.getElementById('formEditarExtrato').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const dadosAtualizados = {
+                data: document.getElementById('editData').value,
+                tipo: document.getElementById('editTipo').value,
+                categoria: document.getElementById('editCategoria').value.trim(),
+                descricao: document.getElementById('editDescricao').value.trim(),
+                formaPagamento: document.getElementById('editForma').value.trim(),
+                valor: Number(document.getElementById('editValor').value)
+            };
+
+            try {
+                await db.collection("financeiro_movimentacoes").doc(id).update(dadosAtualizados);
+                alert("✅ Lançamento atualizado com sucesso!");
+                fecharModalEditar();
+                carregarExtrato();
+            } catch (error) {
+                console.error("Erro ao atualizar:", error);
+                alert("⚠️ Erro ao atualizar lançamento.");
+            }
+        });
 
         async function excluirLancamento(id) {
             if (confirm("Tem certeza de que deseja excluir este lançamento financeiro?")) {
