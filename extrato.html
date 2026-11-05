@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    <!-- Modal para Editar Lançamento (Com suporte a Exclusão e Inclusão de Anexo) -->
+    <!-- Modal para Editar Lançamento (Com Categorias e Formas Padronizadas) -->
     <div id="modalEditarExtrato" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
@@ -165,7 +165,9 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Categoria *</label>
-                    <input type="text" id="editCategoria" required class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
+                    <select id="editCategoria" required class="w-full p-2.5 border rounded-xl text-xs bg-white">
+                        <option value="">A carregar categorias...</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Descrição / Fornecedor *</label>
@@ -173,8 +175,15 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Forma de Pagamento</label>
-                        <input type="text" id="editForma" class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Forma de Pagamento *</label>
+                        <select id="editForma" required class="w-full p-2.5 border rounded-xl text-xs bg-white">
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="PIX">PIX</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Cartão de Débito">Cartão de Débito</option>
+                            <option value="Transferência Bancária">Transferência Bancária</option>
+                            <option value="Boleto">Boleto</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Valor (R$) *</label>
@@ -228,6 +237,21 @@
         }
         const db = firebase.firestore();
         const storage = firebase.storage();
+
+        // Lista global para guardar as categorias do Firebase e reaproveitar no select
+        let listaCategoriasSistema = [];
+
+        async function carregarCategoriasParaSelect() {
+            try {
+                const snapshot = await db.collection("financeiro_categorias").orderBy('nome').get();
+                listaCategoriasSistema = [];
+                snapshot.forEach(docSnap => {
+                    listaCategoriasSistema.push(docSnap.data().nome);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar categorias para o select:", error);
+            }
+        }
 
         window.abrirAnexo = function(urlArquivo, nomeOriginal) {
             if (!urlArquivo) {
@@ -356,16 +380,38 @@
             }
         }
 
-        window.abrirModalEditar = function(id, itemStr) {
+        window.abrirModalEditar = async function(id, itemStr) {
             const item = JSON.parse(itemStr);
             document.getElementById('editId').value = id;
             document.getElementById('editData').value = item.data || '';
             document.getElementById('editTipo').value = item.tipo || 'DESPESA';
-            document.getElementById('editCategoria').value = item.categoria || '';
             document.getElementById('editDescricao').value = item.descricao || '';
-            document.getElementById('editForma').value = item.formaPagamento || '';
             document.getElementById('editValor').value = item.valor || '';
             document.getElementById('editNovoArquivo').value = '';
+
+            // Preenche o Select de Formas de Pagamento garantindo a seleção atual
+            const selectForma = document.getElementById('editForma');
+            if (item.formaPagamento) {
+                selectForma.value = item.formaPagamento;
+            }
+
+            // Popula o select de Categorias com as opções do Firebase
+            const selectCat = document.getElementById('editCategoria');
+            selectCat.innerHTML = `<option value="">Selecione uma categoria...</option>`;
+            
+            if (listaCategoriasSistema.length === 0) {
+                await carregarCategoriasParaSelect();
+            }
+
+            listaCategoriasSistema.forEach(catNome => {
+                const opt = document.createElement('option');
+                opt.value = catNome;
+                opt.textContent = catNome;
+                if (catNome === item.categoria) {
+                    opt.selected = true;
+                }
+                selectCat.appendChild(opt);
+            });
 
             atualizarStatusAnexoModal(item.comprovanteArquivo, item.comprovanteNome);
             document.getElementById('modalEditarExtrato').classList.remove('hidden');
@@ -413,7 +459,6 @@
             const inputNovoArquivo = document.getElementById('editNovoArquivo');
 
             try {
-                // Se o utilizador selecionou um novo ficheiro, faz o upload e substitui
                 if (inputNovoArquivo.files && inputNovoArquivo.files[0]) {
                     const file = inputNovoArquivo.files[0];
                     const nomeUnico = 'comprovantes/' + Date.now() + '_' + file.name;
@@ -427,9 +472,9 @@
                 const dadosAtualizados = {
                     data: document.getElementById('editData').value,
                     tipo: document.getElementById('editTipo').value,
-                    categoria: document.getElementById('editCategoria').value.trim(),
+                    categoria: document.getElementById('editCategoria').value,
                     descricao: document.getElementById('editDescricao').value.trim(),
-                    formaPagamento: document.getElementById('editForma').value.trim(),
+                    formaPagamento: document.getElementById('editForma').value,
                     valor: Number(document.getElementById('editValor').value),
                     comprovanteArquivo: urlArquivo,
                     comprovanteNome: nomeArquivo
@@ -462,6 +507,7 @@
         }
 
         window.onload = () => {
+            carregarCategoriasParaSelect();
             carregarExtrato();
         };
     </script>
