@@ -24,6 +24,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <script src="permissoes.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans text-slate-800 pb-12">
@@ -137,15 +138,18 @@
         </div>
     </div>
 
-    <!-- Modal para Editar Lançamento -->
+    <!-- Modal para Editar Lançamento (Com suporte a Anexo) -->
     <div id="modalEditarExtrato" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
                 <h3 class="font-bold text-sm"><i class="fa-solid fa-pen-to-square mr-2"></i> Editar Lançamento Financeiro</h3>
                 <button onclick="fecharModalEditar()" class="text-indigo-200 hover:text-white text-lg font-bold px-2">&times;</button>
             </div>
-            <form id="formEditarExtrato" class="p-6 space-y-4">
+            <form id="formEditarExtrato" class="p-6 space-y-4 overflow-y-auto flex-grow">
                 <input type="hidden" id="editId">
+                <input type="hidden" id="editUrlAnexoAtual">
+                <input type="hidden" id="editNomeAnexoAtual">
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Data *</label>
@@ -177,9 +181,18 @@
                         <input type="number" step="0.01" id="editValor" required class="w-full p-2.5 border rounded-xl text-xs bg-slate-50">
                     </div>
                 </div>
+
+                <!-- Seção de Anexo -->
+                <div class="border-t pt-3">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Comprovante / Anexo (Opcional)</label>
+                    <div id="statusAnexoAtual" class="text-xs text-slate-500 mb-2">Nenhum anexo atual.</div>
+                    <input type="file" id="editNovoArquivo" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-slate-50">
+                    <p class="text-[10px] text-slate-400 mt-1">Se selecionar um novo ficheiro, ele substituirá o anexo anterior.</p>
+                </div>
+
                 <div class="pt-4 flex justify-end gap-2 border-t">
                     <button type="button" onclick="fecharModalEditar()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 px-4 rounded-xl transition">Cancelar</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow transition">Salvar Alterações</button>
+                    <button type="submit" id="btnSalvarEdicao" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow transition">Salvar Alterações</button>
                 </div>
             </form>
         </div>
@@ -210,6 +223,7 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
         window.abrirAnexo = function(urlArquivo, nomeOriginal) {
             if (!urlArquivo) {
@@ -289,7 +303,6 @@
                         botoesAnexos = `<span class="text-slate-300">-</span>`;
                     }
 
-                    // Botões de Ação com verificação de permissão (Lápis + Lixeira)
                     const dadosItemJSON = encodeURIComponent(JSON.stringify(item));
                     const colunaAcoes = devePermitirEscrita() ? `
                         <div class="flex items-center justify-center gap-1">
@@ -348,6 +361,19 @@
             document.getElementById('editDescricao').value = item.descricao || '';
             document.getElementById('editForma').value = item.formaPagamento || '';
             document.getElementById('editValor').value = item.valor || '';
+            
+            // Gerencia os campos de anexo atuais
+            document.getElementById('editUrlAnexoAtual').value = item.comprovanteArquivo || '';
+            document.getElementById('editNomeAnexoAtual').value = item.comprovanteNome || '';
+            document.getElementById('editNovoArquivo').value = ''; // limpa o input file
+
+            const statusAnexo = document.getElementById('statusAnexoAtual');
+            if (item.comprovanteArquivo) {
+                statusAnexo.innerHTML = `📎 Anexo atual: <a href="${item.comprovanteArquivo}" target="_blank" class="text-indigo-600 underline">${item.comprovanteNome || 'Ver documento'}</a>`;
+            } else {
+                statusAnexo.innerHTML = `<span class="text-amber-600">⚠️ Nenhum documento anexado a este lançamento.</span>`;
+            }
+
             document.getElementById('modalEditarExtrato').classList.remove('hidden');
         };
 
@@ -357,24 +383,49 @@
 
         document.getElementById('formEditarExtrato').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSalvar = document.getElementById('btnSalvarEdicao');
+            btnSalvar.disabled = true;
+            btnSalvar.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Salvando...`;
+
             const id = document.getElementById('editId').value;
-            const dadosAtualizados = {
-                data: document.getElementById('editData').value,
-                tipo: document.getElementById('editTipo').value,
-                categoria: document.getElementById('editCategoria').value.trim(),
-                descricao: document.getElementById('editDescricao').value.trim(),
-                formaPagamento: document.getElementById('editForma').value.trim(),
-                valor: Number(document.getElementById('editValor').value)
-            };
+            let urlArquivo = document.getElementById('editUrlAnexoAtual').value;
+            let nomeArquivo = document.getElementById('editNomeAnexoAtual').value;
+
+            const inputNovoArquivo = document.getElementById('editNovoArquivo');
 
             try {
+                // Se o utilizador selecionou um novo arquivo para anexar
+                if (inputNovoArquivo.files && inputNovoArquivo.files[0]) {
+                    const file = inputNovoArquivo.files[0];
+                    const nomeUnico = 'comprovantes/' + Date.now() + '_' + file.name;
+                    const storageRef = storage.ref().child(nomeUnico);
+                    
+                    const snapshot = await storageRef.put(file);
+                    urlArquivo = await snapshot.ref.getDownloadURL();
+                    nomeArquivo = file.name;
+                }
+
+                const dadosAtualizados = {
+                    data: document.getElementById('editData').value,
+                    tipo: document.getElementById('editTipo').value,
+                    categoria: document.getElementById('editCategoria').value.trim(),
+                    descricao: document.getElementById('editDescricao').value.trim(),
+                    formaPagamento: document.getElementById('editForma').value.trim(),
+                    valor: Number(document.getElementById('editValor').value),
+                    comprovanteArquivo: urlArquivo,
+                    comprovanteNome: nomeArquivo
+                };
+
                 await db.collection("financeiro_movimentacoes").doc(id).update(dadosAtualizados);
-                alert("✅ Lançamento atualizado com sucesso!");
+                alert("✅ Lançamento e anexo atualizados com sucesso!");
                 fecharModalEditar();
                 carregarExtrato();
             } catch (error) {
                 console.error("Erro ao atualizar:", error);
                 alert("⚠️ Erro ao atualizar lançamento.");
+            } finally {
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = `Salvar Alterações`;
             }
         });
 
