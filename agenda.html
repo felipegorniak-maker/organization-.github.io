@@ -103,13 +103,11 @@
     </footer>
 
     <script>
-        // Define o mês atual como padrão no filtro
         const dataAtual = new Date();
         const anoAtual = dataAtual.getFullYear();
         const mesAtual = String(dataAtual.getMonth() + 1).padStart(2, '0');
         document.getElementById('filtroMesAgenda').value = `${anoAtual}-${mesAtual}`;
 
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDkJAyKwwpI2-0JuupYqDbRge0aBvKP8EI",
             authDomain: "contratos-apolo.firebaseapp.com",
@@ -129,7 +127,7 @@
             const tbody = document.getElementById('tabelaAgendaBody');
             tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> A atualizar agenda...</td></tr>`;
 
-            const filtroMesVal = document.getElementById('filtroMesAgenda').value; // Formato "YYYY-MM"
+            const filtroMesVal = document.getElementById('filtroMesAgenda').value;
 
             try {
                 const snapshot = await db.collection("agenda").get();
@@ -159,10 +157,13 @@
                             dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
                         }
                     }
-                    // Define se exibe a lixeira ou um traço com base na permissão do perfil
-                    const colunaAcoes = devePermitirEscrita() ? 
-                        `<button onclick="excluirReserva('${idDoc}')" title="Cancelar / Excluir Reserva" class="text-slate-400 hover:text-rose-600 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>` : 
-                        `<span class="text-slate-300">-</span>`;
+
+                    // Botões de Ação na Agenda (Lápis redirecionando para geração de contrato + Lixeira)
+                    const colunaAcoes = devePermitirEscrita() ? `
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editarReservaViaContrato()" title="Alterar dados exige um novo contrato. Clique para ir à geração." class="text-slate-400 hover:text-amber-600 p-1 transition"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="excluirReserva('${idDoc}')" title="Cancelar / Excluir Reserva" class="text-slate-400 hover:text-rose-600 p-1 transition"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>` : `<span class="text-slate-300">-</span>`;
                     
                      htmlTabela += `
                         <tr class="hover:bg-slate-50 transition">
@@ -174,9 +175,7 @@
                                     Confirmado
                                 </span>
                             </td>
-                            <td class="p-3 text-center">
-                                ${colunaAcoes}
-                            </td>
+                            <td class="p-3 text-center">${colunaAcoes}</td>
                         </tr>
                     `;
                 });
@@ -194,6 +193,12 @@
                 tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-500">Erro ao carregar dados do Firebase.</td></tr>`;
             }
         }
+
+        window.editarReservaViaContrato = function() {
+            if (confirm("ℹ️ Como os dados da agenda são gerados via contrato, a alteração exige um novo contrato. Deseja ir para a página de geração/contratos agora?")) {
+                window.location.href = "contrato.html"; // Altere para o nome exato da página de contrato do salão se necessário
+            }
+        };
 
         async function excluirReserva(id) {
             if (confirm("Tem certeza de que deseja cancelar e excluir esta reserva da agenda?")) {
