@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    <!-- Modal para Editar Lançamento (Com suporte a Anexo) -->
+    <!-- Modal para Editar Lançamento (Com suporte a Exclusão e Inclusão de Anexo) -->
     <div id="modalEditarExtrato" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
@@ -182,12 +182,16 @@
                     </div>
                 </div>
 
-                <!-- Seção de Anexo -->
+                <!-- Seção de Gestão de Anexo -->
                 <div class="border-t pt-3">
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Comprovante / Anexo (Opcional)</label>
-                    <div id="statusAnexoAtual" class="text-xs text-slate-500 mb-2">Nenhum anexo atual.</div>
-                    <input type="file" id="editNovoArquivo" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-slate-50">
-                    <p class="text-[10px] text-slate-400 mt-1">Se selecionar um novo ficheiro, ele substituirá o anexo anterior.</p>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Comprovante / Anexo</label>
+                    <div id="statusAnexoAtual" class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border mb-2 text-xs">
+                        <!-- Preenchido dinamicamente via JS -->
+                    </div>
+                    <div id="containerNovoArquivo">
+                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Substituir ou Adicionar Ficheiro:</label>
+                        <input type="file" id="editNovoArquivo" class="w-full p-2 border border-slate-300 rounded-xl text-xs bg-slate-50">
+                    </div>
                 </div>
 
                 <div class="pt-4 flex justify-end gap-2 border-t">
@@ -361,20 +365,35 @@
             document.getElementById('editDescricao').value = item.descricao || '';
             document.getElementById('editForma').value = item.formaPagamento || '';
             document.getElementById('editValor').value = item.valor || '';
-            
-            // Gerencia os campos de anexo atuais
-            document.getElementById('editUrlAnexoAtual').value = item.comprovanteArquivo || '';
-            document.getElementById('editNomeAnexoAtual').value = item.comprovanteNome || '';
-            document.getElementById('editNovoArquivo').value = ''; // limpa o input file
+            document.getElementById('editNovoArquivo').value = '';
 
-            const statusAnexo = document.getElementById('statusAnexoAtual');
-            if (item.comprovanteArquivo) {
-                statusAnexo.innerHTML = `📎 Anexo atual: <a href="${item.comprovanteArquivo}" target="_blank" class="text-indigo-600 underline">${item.comprovanteNome || 'Ver documento'}</a>`;
-            } else {
-                statusAnexo.innerHTML = `<span class="text-amber-600">⚠️ Nenhum documento anexado a este lançamento.</span>`;
-            }
-
+            atualizarStatusAnexoModal(item.comprovanteArquivo, item.comprovanteNome);
             document.getElementById('modalEditarExtrato').classList.remove('hidden');
+        };
+
+        window.atualizarStatusAnexoModal = function(url, nome) {
+            document.getElementById('editUrlAnexoAtual').value = url || '';
+            document.getElementById('editNomeAnexoAtual').value = nome || '';
+            const statusDiv = document.getElementById('statusAnexoAtual');
+
+            if (url) {
+                statusDiv.innerHTML = `
+                    <span class="truncate max-w-[220px]">📎 <a href="${url}" target="_blank" class="text-indigo-600 underline font-medium">${nome || 'Ver documento'}</a></span>
+                    <button type="button" onclick="removerAnexoAtual()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> Excluir Anexo
+                    </button>
+                `;
+            } else {
+                statusDiv.innerHTML = `<span class="text-amber-600 italic">⚠️ Nenhum documento anexado atualmente.</span>`;
+            }
+        };
+
+        window.removerAnexoAtual = function() {
+            if (confirm("Deseja remover o anexo deste lançamento?")) {
+                document.getElementById('editUrlAnexoAtual').value = '';
+                document.getElementById('editNomeAnexoAtual').value = '';
+                atualizarStatusAnexoModal('', '');
+            }
         };
 
         window.fecharModalEditar = function() {
@@ -394,7 +413,7 @@
             const inputNovoArquivo = document.getElementById('editNovoArquivo');
 
             try {
-                // Se o utilizador selecionou um novo arquivo para anexar
+                // Se o utilizador selecionou um novo ficheiro, faz o upload e substitui
                 if (inputNovoArquivo.files && inputNovoArquivo.files[0]) {
                     const file = inputNovoArquivo.files[0];
                     const nomeUnico = 'comprovantes/' + Date.now() + '_' + file.name;
@@ -417,7 +436,7 @@
                 };
 
                 await db.collection("financeiro_movimentacoes").doc(id).update(dadosAtualizados);
-                alert("✅ Lançamento e anexo atualizados com sucesso!");
+                alert("✅ Lançamento atualizado com sucesso!");
                 fecharModalEditar();
                 carregarExtrato();
             } catch (error) {
